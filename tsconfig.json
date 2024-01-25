@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "esnext" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
-    "module": "esnext" /* Specify what module code is generated. */,
+    "module": "nodenext" /* Specify what module code is generated. */,
+    "moduleResolution": "nodenext",
     "declaration": true /* Generate .d.ts files from TypeScript and JavaScript files in your project. */,
     "outDir": "./dist" /* Specify an output folder for all emitted files. */,
     "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
