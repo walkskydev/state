@@ -1,12 +1,13 @@
 - [x] add logging
-- [ ] add unsubscribe functionality
-- [ ] add benchmark
-- [ ] write tests
+- [x] add unsubscribe functionality
 - [ ] cancel side effects from listeners
+- [ ] generic type for State  
+- [ ] write tests
+- [ ] add benchmarks
 - [ ] primitives support
 - [ ] mutable/immutable options
-- [ ] array & object changes?
+- [ ] add readme
 - [ ] no dependency subscription (log everything?)
 - [ ] add middlewares
 - [ ] persistence
-- [ ] add readme
+- [ ] array & object changes?
