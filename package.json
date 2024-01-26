@@ -7,8 +7,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "lint": "biome check ./src/*.ts --apply",
-    "pre-commit": "pnpm run lint"
+    "prepare": "husky",
+    "pre-commit": "npm run lint",
+    "lint": "biome check ./src/*.ts --apply"
   },
   "keywords": [],
   "author": "",
@@ -18,11 +19,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.5.3",
-    "husky": "^7.0.4"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "pnpm run pre-commit"
-    }
+    "git-format-staged": "^3.0.0",
+    "husky": "^9.0.6"
   }
 }

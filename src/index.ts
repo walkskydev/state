@@ -121,15 +121,4 @@ const state = new State({ apples: 1 });
 
 state.setState({ apples: 1 });
 
-
-
-
-
-
-
-
-
-
-
-
 export default State;
