@@ -1,0 +1,12 @@
+- [x] add logging
+- [ ] add unsubscribe functionality
+- [ ] add benchmark
+- [ ] write tests
+- [ ] cancel side effects from listeners
+- [ ] primitives support
+- [ ] mutable/immutable options
+- [ ] array & object changes?
+- [ ] no dependency subscription (log everything?)
+- [ ] add middlewares
+- [ ] persistence
+- [ ] add readme

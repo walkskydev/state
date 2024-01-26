@@ -10,3 +10,8 @@ dist/
 # Editor directories and files
 .idea/
 *.log
+
+
+# Specific files
+logger.js
+benchmarks.js

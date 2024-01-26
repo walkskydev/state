@@ -1,15 +1,15 @@
-import {createListenersSet, createPropertiesMap} from "./helpers.js";
+import { createListenersSet, createPropertiesMap } from "./helpers.js";
 import * as t from "./types.js";
 
-const statesMap: t.GlobalListeners = new WeakMap();
+const statesMap: t.GlobalListenersMap = new WeakMap();
 const listenersQueue = createListenersSet();
 
 // HANDLERS
-let currentListener: t.Listener | null;
-let isBulk = false;
+let currentListener: t.ListenerFn | null;
+let isBulkUpdate = false;
 
 // HELPERS
-function getObservedState(instance: State<object>): t.PropertiesMap {
+function getPropertiesMap(instance: State): t.PropertiesMap {
 	if (statesMap.has(instance)) {
 		return statesMap.get(instance);
 	}
@@ -19,70 +19,77 @@ function getObservedState(instance: State<object>): t.PropertiesMap {
 function clearCurrentListener() {
 	currentListener = null;
 }
-function bulkUpdate(cb: t.Listener) {
-	isBulk = true;
+function runBulkUpdate(cb: t.ListenerFn) {
+	isBulkUpdate = true;
 	cb();
 	for (const callback of listenersQueue) {
 		callback();
 	}
 	listenersQueue.clear();
-	isBulk = false;
+	isBulkUpdate = false;
 }
 
-function createProxy<T extends object>(rawObj: T, stateInstance: State<T>): T {
-	// todo: make a copy of rawObject
-	return new Proxy(rawObj, {
-		set(target: T, property: keyof object, value: unknown) {
+const createProxyHandler = (state: State): t.ProxyHandler<object> => {
+	return {
+		set(target, property, value) {
 			const result = Reflect.set(target, property, value);
-			// todo: rename
-			const observedState = getObservedState(stateInstance);
+			const statePropertiesMap = getPropertiesMap(state);
 
-			if (observedState.has(property)) {
-				if (isBulk) {
-					for (const callback of observedState.get(property)) {
-						listenersQueue.add(callback);
+			if (statePropertiesMap.has(property)) {
+				if (isBulkUpdate) {
+					for (const listener of statePropertiesMap.get(property)) {
+						listenersQueue.add(listener);
 					}
 				} else {
-					for (const callback of observedState.get(property)) {
-						callback();
+					for (const listener of statePropertiesMap.get(property)) {
+						listener();
 					}
 				}
 			}
 
 			return result;
 		},
-		get(target: T, property: keyof object) {
-			const observedState = getObservedState(stateInstance);
+		get(target, property) {
+			const statePropertiesMap = getPropertiesMap(state);
 
-			if (!observedState.has(property)) {
-				observedState.set(property, createListenersSet());
+			if (!statePropertiesMap.has(property)) {
+				statePropertiesMap.set(property, createListenersSet());
 			}
 
-			const listeners = observedState.get(property);
+			const listeners = statePropertiesMap.get(property);
 
 			if (currentListener && !listeners.has(currentListener)) {
 				listeners.add(currentListener);
 			}
 
 			clearCurrentListener();
-			return target[property];
+			return Reflect.get(target, property);
 		},
-	});
+	};
+};
+
+function createProxy(rawObj: object, stateInstance: State) {
+	return new Proxy({...rawObj}, createProxyHandler(stateInstance));
 }
 
-class State<T extends object> {
-	constructor(obj: T) {
+interface IState {
+	getState: () => object;
+	setState: (o: object) => void;
+}
+
+class State implements IState {
+	constructor(obj: object) {
 		this.#state = createProxy(obj, this);
 	}
 
-	#state: T;
+	#state;
 
 	public getState = () => {
 		return this.#state;
 	};
 
-	public setState = (newValue: Partial<T>) => {
-		bulkUpdate(() => {
+	public setState = (newValue: object) => {
+		runBulkUpdate(() => {
 			Object.assign(this.#state, newValue);
 		});
 	};
@@ -90,10 +97,10 @@ class State<T extends object> {
 	// sideEffects should be restricted
 	// classic subscriber
 	// works for react
-	// name options: subscribe
-	public runEffect = (listener: t.Listener) => {
+	// name options: subscribe, runEffect
+	public runEffect = (listener: t.ListenerFn, ...args: unknown[]) => {
 		currentListener = listener;
-		listener();
+		listener(args);
 		clearCurrentListener();
 
 		const unsubscribe = () => {};
@@ -102,48 +109,16 @@ class State<T extends object> {
 	};
 }
 
-// component or function that return some value
-// sideEffects should be restricted
-// todo: naming options: watchSignals
-export function reactOnSignal(reaction: t.Listener, ...args: unknown[]) {
+//
+export function reactOnSignal(reaction: t.ListenerFn, ...args: unknown[]) {
 	currentListener = reaction;
 	const result = reaction(args);
 	clearCurrentListener();
 	return result;
 }
 
-// DEBUG:
+const state = new State({ apples: 1 });
 
-const appleState = new State({apples: 0, price: 0, marketsIDs: []});
-
-// const applesSub = () => {
-// 	console.log(appleState.getState().apples);
-// }
-// const priceSub = () => {
-// 	console.log(appleState.getState().price);
-// }
-//
-// console.log("SUBSCRIBED to applesSub")
-// appleState.runEffect(applesSub);
-//
-// console.log("set price: 1}")
-// appleState.setState({price: 1})
-// console.log("SUBSCRIBED to priceSub")
-//
-// appleState.runEffect(priceSub);
-// appleState.setState({price: 2})
-
-
-
-// todo write tests
-// todo: unsubscribe
-// todo: cancel side effects from listeners
-// todo: primitives support
-// todo: mutable/immutable options
-// todo: array & object changes?
-// todo: no dependency subscription (log everything?)
-// todo: add middlewares
-// todo: persistence
-// todo: add readme
+state.setState({ apples: 1 });
 
 export default State;
