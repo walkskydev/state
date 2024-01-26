@@ -58,11 +58,12 @@ const createProxyHandler = (state: State): t.ProxyHandler<object> => {
 
 			const listeners = statePropertiesMap.get(property);
 
+			// todo: performance benchmark
 			if (currentListener && !listeners.has(currentListener)) {
 				listeners.add(currentListener);
 			}
 
-			clearCurrentListener();
+			//	 clearCurrentListener();
 			return Reflect.get(target, property);
 		},
 	};
@@ -98,9 +99,9 @@ class State implements IState {
 	// classic subscriber
 	// works for react
 	// name options: subscribe, runEffect
-	public runEffect = (listener: t.ListenerFn, ...args: unknown[]) => {
+	public subscribe = (listener: t.ListenerFn, ...args: unknown[]) => {
 		currentListener = listener;
-		listener(args);
+		listener(...args);
 		clearCurrentListener();
 
 		const unsubscribe = () => {};
@@ -110,12 +111,12 @@ class State implements IState {
 }
 
 //
-export function reactOnSignal(reaction: t.ListenerFn, ...args: unknown[]) {
-	currentListener = reaction;
-	const result = reaction(args);
-	clearCurrentListener();
-	return result;
-}
+// export function reactOnSignal(reaction: t.ListenerFn, ...args: unknown[]) {
+// 	// currentListener = reaction;
+// 	// const result = reaction(args);
+// 	// clearCurrentListener();
+// 	// return result;
+// }
 
 const state = new State({ apples: 1 });
 
