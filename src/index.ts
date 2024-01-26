@@ -69,7 +69,7 @@ const createProxyHandler = (state: State): t.ProxyHandler<object> => {
 };
 
 function createProxy(rawObj: object, stateInstance: State) {
-	return new Proxy({...rawObj}, createProxyHandler(stateInstance));
+	return new Proxy({ ...rawObj }, createProxyHandler(stateInstance));
 }
 
 interface IState {
@@ -120,5 +120,16 @@ export function reactOnSignal(reaction: t.ListenerFn, ...args: unknown[]) {
 const state = new State({ apples: 1 });
 
 state.setState({ apples: 1 });
+
+
+
+
+
+
+
+
+
+
+
 
 export default State;
