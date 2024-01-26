@@ -4,9 +4,10 @@ import * as t from "./types.js";
 const statesMap: t.GlobalListenersMap = new WeakMap();
 const listenersQueue = createListenersSet();
 
-// HANDLERS
+// Listener HANDLERS
 let currentListener: t.ListenerFn | null;
 let isBulkUpdate = false;
+const listenerProperties: Set<string | symbol> = new Set();
 
 // HELPERS
 function getPropertiesMap(instance: State): t.PropertiesMap {
@@ -63,7 +64,7 @@ const createProxyHandler = (state: State): t.ProxyHandler<object> => {
 				listeners.add(currentListener);
 			}
 
-			//	 clearCurrentListener();
+			listenerProperties.add(property);
 			return Reflect.get(target, property);
 		},
 	};
@@ -102,9 +103,17 @@ class State implements IState {
 	public subscribe = (listener: t.ListenerFn, ...args: unknown[]) => {
 		currentListener = listener;
 		listener(...args);
-		clearCurrentListener();
 
-		const unsubscribe = () => {};
+		const unsubscribe = () => {
+			const props = Array.from(listenerProperties);
+			const state = getPropertiesMap(this);
+			for (const prop of props) {
+				state.get(prop).delete(listener);
+			}
+		};
+
+		listenerProperties.clear();
+		clearCurrentListener();
 
 		return unsubscribe;
 	};
