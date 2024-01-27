@@ -8,3 +8,12 @@ export type ProxyHandler<T extends object> = {
 	set: (target: T, property: string | symbol, value: unknown) => boolean;
 	get: (target: T, property: string | symbol) => boolean;
 };
+
+export type Listeners = {
+	currentListener: ListenerFn | null;
+	isBulkUpdate: boolean;
+	listenerProperties: Set<string | symbol>;
+
+	statesMap: GlobalListenersMap;
+	listenersQueue: ListenersSet;
+};

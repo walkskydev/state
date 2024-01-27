@@ -1,46 +1,22 @@
-import { createListenersSet, createPropertiesMap } from "./helpers.js";
+import * as listeners from "./listeners.js";
 import * as T from "./types.js";
 import * as utils from "./utils.js";
 
-const statesMap: T.GlobalListenersMap = new WeakMap();
-const listenersQueue = createListenersSet();
-
-// Listener HANDLERS
-let currentListener: T.ListenerFn | null;
-let isBulkUpdate = false;
-const listenerProperties: Set<string | symbol> = new Set();
-
-// HELPERS
-function getPropertiesMap(instance: object): T.PropertiesMap {
-	if (statesMap.has(instance)) {
-		return statesMap.get(instance);
-	}
-	statesMap.set(instance, createPropertiesMap());
-	return statesMap.get(instance);
-}
-function clearCurrentListener() {
-	currentListener = null;
-}
-function runBulkUpdate(cb: T.ListenerFn) {
-	isBulkUpdate = true;
-	cb();
-	for (const callback of listenersQueue) {
-		callback();
-	}
-	listenersQueue.clear();
-	isBulkUpdate = false;
-}
+const _statesRegister = listeners.createListeners();
 
 const createProxyHandler = (state: object): T.ProxyHandler<object> => {
 	return {
 		set(target, property, value) {
 			const result = Reflect.set(target, property, value);
-			const statePropertiesMap = getPropertiesMap(state);
+			const statePropertiesMap = listeners.getPropertiesMap(
+				state,
+				_statesRegister,
+			);
 
 			if (statePropertiesMap.has(property)) {
-				if (isBulkUpdate) {
+				if (_statesRegister.isBulkUpdate) {
 					for (const listener of statePropertiesMap.get(property)) {
-						listenersQueue.add(listener);
+						_statesRegister.listenersQueue.add(listener);
 					}
 				} else {
 					for (const listener of statePropertiesMap.get(property)) {
@@ -52,20 +28,26 @@ const createProxyHandler = (state: object): T.ProxyHandler<object> => {
 			return result;
 		},
 		get(target, property) {
-			const statePropertiesMap = getPropertiesMap(state);
+			const statePropertiesMap = listeners.getPropertiesMap(
+				state,
+				_statesRegister,
+			);
 
 			if (!statePropertiesMap.has(property)) {
-				statePropertiesMap.set(property, createListenersSet());
+				statePropertiesMap.set(property, listeners.createListenersSet());
 			}
 
-			const listeners = statePropertiesMap.get(property);
+			const propertyListeners = statePropertiesMap.get(property);
 
 			// todo: performance benchmark
-			if (currentListener && !listeners.has(currentListener)) {
-				listeners.add(currentListener);
+			if (
+				_statesRegister.currentListener &&
+				!propertyListeners.has(_statesRegister.currentListener)
+			) {
+				propertyListeners.add(_statesRegister.currentListener);
 			}
 
-			listenerProperties.add(property);
+			_statesRegister.listenerProperties.add(property);
 			return Reflect.get(target, property);
 		},
 	};
@@ -96,9 +78,9 @@ class State<T> implements IState<T> {
 	};
 
 	public setState = (newValue: Partial<T>) => {
-		runBulkUpdate(() => {
+		listeners.runBulkUpdate(() => {
 			Object.assign(this.#state, newValue);
-		});
+		}, _statesRegister);
 	};
 
 	// sideEffects should be restricted
@@ -106,19 +88,19 @@ class State<T> implements IState<T> {
 	// works for react
 	// name options: subscribe, runEffect
 	public subscribe = (listener: T.ListenerFn, ...args: unknown[]) => {
-		currentListener = listener;
+		_statesRegister.currentListener = listener;
 		listener(...args);
 
 		const unsubscribe = () => {
-			const props = Array.from(listenerProperties);
-			const state = getPropertiesMap(this);
+			const props = Array.from(_statesRegister.listenerProperties);
+			const state = listeners.getPropertiesMap(this, _statesRegister);
 			for (const prop of props) {
 				state.get(prop).delete(listener);
 			}
 		};
 
-		listenerProperties.clear();
-		clearCurrentListener();
+		_statesRegister.listenerProperties.clear();
+		listeners.clearCurrentListener(_statesRegister);
 
 		return unsubscribe;
 	};
