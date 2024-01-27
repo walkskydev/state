@@ -1,16 +1,17 @@
 import { createListenersSet, createPropertiesMap } from "./helpers.js";
-import * as t from "./types.js";
+import * as T from "./types.js";
+import * as utils from "./utils.js";
 
-const statesMap: t.GlobalListenersMap = new WeakMap();
+const statesMap: T.GlobalListenersMap = new WeakMap();
 const listenersQueue = createListenersSet();
 
 // Listener HANDLERS
-let currentListener: t.ListenerFn | null;
+let currentListener: T.ListenerFn | null;
 let isBulkUpdate = false;
 const listenerProperties: Set<string | symbol> = new Set();
 
 // HELPERS
-function getPropertiesMap(instance: State): t.PropertiesMap {
+function getPropertiesMap(instance: object): T.PropertiesMap {
 	if (statesMap.has(instance)) {
 		return statesMap.get(instance);
 	}
@@ -20,7 +21,7 @@ function getPropertiesMap(instance: State): t.PropertiesMap {
 function clearCurrentListener() {
 	currentListener = null;
 }
-function runBulkUpdate(cb: t.ListenerFn) {
+function runBulkUpdate(cb: T.ListenerFn) {
 	isBulkUpdate = true;
 	cb();
 	for (const callback of listenersQueue) {
@@ -30,7 +31,7 @@ function runBulkUpdate(cb: t.ListenerFn) {
 	isBulkUpdate = false;
 }
 
-const createProxyHandler = (state: State): t.ProxyHandler<object> => {
+const createProxyHandler = (state: object): T.ProxyHandler<object> => {
 	return {
 		set(target, property, value) {
 			const result = Reflect.set(target, property, value);
@@ -70,27 +71,31 @@ const createProxyHandler = (state: State): t.ProxyHandler<object> => {
 	};
 };
 
-function createProxy(rawObj: object, stateInstance: State) {
-	return new Proxy({ ...rawObj }, createProxyHandler(stateInstance));
+function createProxy<T>(rawObj: object, stateInstance: object): T {
+	return new Proxy({ ...rawObj }, createProxyHandler(stateInstance)) as T;
 }
 
-interface IState {
-	getState: () => object;
+interface IState<T> {
+	getState: () => T;
 	setState: (o: object) => void;
 }
 
-class State implements IState {
-	constructor(obj: object) {
-		this.#state = createProxy(obj, this);
+class State<T> implements IState<T> {
+	constructor(value: T) {
+		if (utils.isObject(value)) {
+			this.#state = createProxy(value as object, this);
+		} else {
+			throw new Error("This type is not supported yet!");
+		}
 	}
 
-	#state;
+	#state: T;
 
 	public getState = () => {
 		return this.#state;
 	};
 
-	public setState = (newValue: object) => {
+	public setState = (newValue: Partial<T>) => {
 		runBulkUpdate(() => {
 			Object.assign(this.#state, newValue);
 		});
@@ -100,7 +105,7 @@ class State implements IState {
 	// classic subscriber
 	// works for react
 	// name options: subscribe, runEffect
-	public subscribe = (listener: t.ListenerFn, ...args: unknown[]) => {
+	public subscribe = (listener: T.ListenerFn, ...args: unknown[]) => {
 		currentListener = listener;
 		listener(...args);
 
@@ -126,9 +131,5 @@ class State implements IState {
 // 	// clearCurrentListener();
 // 	// return result;
 // }
-
-const state = new State({ apples: 1 });
-
-state.setState({ apples: 1 });
 
 export default State;
