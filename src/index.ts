@@ -1,71 +1,19 @@
-import * as listeners from "./listeners.js";
-import * as T from "./types.js";
+import StatesRegister from "./Listeners/StatesRegister.js";
+import * as T from "./Listeners/types.js";
+import { createProxy } from "./proxy.js";
 import * as utils from "./utils.js";
 
-const _statesRegister = listeners.createListeners();
-
-const createProxyHandler = (state: object): T.ProxyHandler<object> => {
-	return {
-		set(target, property, value) {
-			const result = Reflect.set(target, property, value);
-			const statePropertiesMap = listeners.getPropertiesMap(
-				state,
-				_statesRegister,
-			);
-
-			if (statePropertiesMap.has(property)) {
-				if (_statesRegister.isBulkUpdate) {
-					for (const listener of statePropertiesMap.get(property)) {
-						_statesRegister.listenersQueue.add(listener);
-					}
-				} else {
-					for (const listener of statePropertiesMap.get(property)) {
-						listener();
-					}
-				}
-			}
-
-			return result;
-		},
-		get(target, property) {
-			const statePropertiesMap = listeners.getPropertiesMap(
-				state,
-				_statesRegister,
-			);
-
-			if (!statePropertiesMap.has(property)) {
-				statePropertiesMap.set(property, listeners.createListenersSet());
-			}
-
-			const propertyListeners = statePropertiesMap.get(property);
-
-			// todo: performance benchmark
-			if (
-				_statesRegister.currentListener &&
-				!propertyListeners.has(_statesRegister.currentListener)
-			) {
-				propertyListeners.add(_statesRegister.currentListener);
-			}
-
-			_statesRegister.listenerProperties.add(property);
-			return Reflect.get(target, property);
-		},
-	};
-};
-
-function createProxy<T>(rawObj: object, stateInstance: object): T {
-	return new Proxy({ ...rawObj }, createProxyHandler(stateInstance)) as T;
-}
+const statesRegister = new StatesRegister();
 
 interface IState<T> {
 	getState: () => T;
-	setState: (o: object) => void;
+	setState: (o: Partial<T>) => void;
 }
 
 class State<T> implements IState<T> {
 	constructor(value: T) {
 		if (utils.isObject(value)) {
-			this.#state = createProxy(value as object, this);
+			this.#state = createProxy(value as object, this, statesRegister);
 		} else {
 			throw new Error("This type is not supported yet!");
 		}
@@ -78,40 +26,31 @@ class State<T> implements IState<T> {
 	};
 
 	public setState = (newValue: Partial<T>) => {
-		listeners.runBulkUpdate(() => {
+		statesRegister.runBulkUpdate(() => {
 			Object.assign(this.#state, newValue);
-		}, _statesRegister);
+		});
 	};
 
-	// sideEffects should be restricted
-	// classic subscriber
-	// works for react
-	// name options: subscribe, runEffect
 	public subscribe = (listener: T.ListenerFn, ...args: unknown[]) => {
-		_statesRegister.currentListener = listener;
+		statesRegister.currentListener = listener;
 		listener(...args);
 
 		const unsubscribe = () => {
-			const props = Array.from(_statesRegister.listenerProperties);
-			const state = listeners.getPropertiesMap(this, _statesRegister);
+			const props = Array.from(statesRegister.listenerProperties);
+			const state = statesRegister.getPropertiesMap(this);
 			for (const prop of props) {
 				state.get(prop).delete(listener);
 			}
 		};
 
-		_statesRegister.listenerProperties.clear();
-		listeners.clearCurrentListener(_statesRegister);
+		statesRegister.clearCurrentListenerProperties();
+		statesRegister.clearCurrentListener();
 
 		return unsubscribe;
 	};
 }
 
-//
-// export function reactOnSignal(reaction: t.ListenerFn, ...args: unknown[]) {
-// 	// currentListener = reaction;
-// 	// const result = reaction(args);
-// 	// clearCurrentListener();
-// 	// return result;
-// }
+const state = new State({ hello: 1, b: 2 });
+state.setState({});
 
 export default State;

@@ -1,8 +1,8 @@
 - [x] add logging
 - [x] add unsubscribe functionality
+- [ ] write tests
 - [ ] cancel side effects from listeners
 - [ ] generic type for State  
-- [ ] write tests
 - [ ] add benchmarks
 - [ ] primitives support
 - [ ] mutable/immutable options
