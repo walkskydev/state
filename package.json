@@ -2,24 +2,22 @@
   "name": "state",
   "version": "0.1.0",
   "description": "Framework-agnostic state manager",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "type": "module",
   "scripts": {
     "build": "tsc",
     "prepare": "husky",
     "pre-commit": "npm run lint",
-    "lint": "biome check ./src/*.ts --apply"
+    "lint": "biome check ./src/*.js --apply"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "typescript": "^5.3.3"
-  },
   "devDependencies": {
     "@biomejs/biome": "1.5.3",
     "git-format-staged": "^3.0.0",
-    "husky": "^9.0.6"
+    "husky": "^9.0.6",
+    "typescript": "^5.3.3"
   }
 }

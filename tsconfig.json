@@ -1,13 +1,13 @@
 {
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules"],
   "compilerOptions": {
-    "target": "esnext" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
-    "module": "nodenext" /* Specify what module code is generated. */,
-    "moduleResolution": "nodenext",
-    "declaration": true /* Generate .d.ts files from TypeScript and JavaScript files in your project. */,
-    "outDir": "./dist" /* Specify an output folder for all emitted files. */,
-    "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
-    "strict": true /* Enable all strict type-checking options. */,
-    "skipLibCheck": true, /* Skip type checking all .d.ts files. */
-    "strictNullChecks": false // Because of  problems with Map/Set: https://github.com/microsoft/TypeScript/issues/9619
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+    "declarationMap": true,
+    "target": "esnext",
+    "module": "esnext"
   }
 }
