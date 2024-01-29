@@ -1,1 +1,1 @@
-npm run pre-commit && git add .
+npm run lint && git add .

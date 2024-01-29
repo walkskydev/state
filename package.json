@@ -8,16 +8,19 @@
   "scripts": {
     "build": "tsc",
     "prepare": "husky",
-    "pre-commit": "npm run lint",
-    "lint": "biome check ./src/*.js --apply"
+    "lint": "biome check ./src/*.js --apply",
+    "test": "mocha --recursive ./src"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "1.5.3",
+    "assert": "^2.1.0",
+    "chai": "^5.0.3",
     "git-format-staged": "^3.0.0",
     "husky": "^9.0.6",
+    "mocha": "^10.2.0",
     "typescript": "^5.3.3"
   }
 }

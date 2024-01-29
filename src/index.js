@@ -54,18 +54,13 @@ class State {
 	 * @return {function} An unsubscribe function to remove the listener.
 	 */
 	subscribe = (listener) => {
-		statesRegister.currentListener = listener;
+		statesRegister.setCurrentListener(listener);
 		listener();
 
 		const unsubscribe = () => {
-			const props = Array.from(statesRegister.listenerProperties);
-			const state = statesRegister.getPropertiesMap(this);
-			for (const prop of props) {
-				state.get(prop).delete(listener);
-			}
+			statesRegister.unsubscribe(listener, this);
 		};
 
-		statesRegister.clearCurrentListenerProperties();
 		statesRegister.clearCurrentListener();
 
 		return unsubscribe;

@@ -1,5 +1,5 @@
 /**
- * @typedef {(...args: any[]) => any} ListenerFn
+ * @typedef {() => void} ListenerFn
  * @typedef {Set<ListenerFn>} ListenersSet
  * @typedef {Map<string | symbol, ListenersSet>} PropertiesMap
  * @typedef {WeakMap<object, PropertiesMap>} GlobalListenersMap
@@ -7,37 +7,26 @@
 
 export default class Listeners {
     /**
+     * Listener callback which one executed right now and run the getter Proxy Trap
      * @type {ListenerFn|null}
      */
-    currentListener;
+    currentListener = null;
 
     /**
+     * bulkUpdate triggered from setState. Used to avoid executing each field listeners in multiple fields update
      * @type {boolean}
      */
-    isBulkUpdate;
-
-    /**
-     * @type {Set<string | symbol>}
-     */
-    listenerProperties;
+    isBulkUpdate = false;
 
     /**
      * @type {GlobalListenersMap}
      */
-    statesMap;
+    statesMap= new WeakMap();
 
     /**
      * @type {ListenersSet}
      */
-    listenersQueue;
-
-    constructor() {
-        this.currentListener = null;
-        this.isBulkUpdate = false;
-        this.listenerProperties = new Set();
-        this.statesMap = new WeakMap();
-        this.listenersQueue = new Set();
-    }
+    listenersQueue= new Set();
 
     /**
      * @returns {PropertiesMap}
@@ -54,26 +43,42 @@ export default class Listeners {
     }
 
     /**
-     * @param {object} instance
+     * Return state properties
+     * @param {object} state
      * @returns {PropertiesMap}
      */
-    getPropertiesMap(instance) {
-        if (this.statesMap.has(instance)) {
-            return this.statesMap.get(instance);
+    getPropertiesMap(state) {
+        if (this.statesMap.has(state)) {
+            return this.statesMap.get(state);
         }
-        this.statesMap.set(instance, Listeners.createPropertiesMap());
-        return this.statesMap.get(instance);
+        this.statesMap.set(state, Listeners.createPropertiesMap());
+        return this.statesMap.get(state);
     }
 
     clearCurrentListener() {
         this.currentListener = null;
     }
 
-    clearCurrentListenerProperties() {
-        this.listenerProperties.clear();
+    /**
+     * Unsubscribes a callback from all listeners associated with a given state.
+     *
+     * @param {Function} cb - The callback function to unsubscribe.
+     * @param {object} state - The state object.
+     *
+     * @return {void}
+     */
+    unsubscribe(cb, state) {
+        const props = this.getPropertiesMap(state);
+        for (const [, listeners] of props) {
+            listeners.delete(cb)
+        }
     }
 
+
     /**
+     * Bulk update means a multiple state properties will be updated
+     * when callback has been executed - it means getter Proxy trap collect all  callbacks from changed keys to
+     * 'listenersQueue'. What means than now listeners could be executed
      * @param {ListenerFn} cb
      */
     runBulkUpdate(cb) {
@@ -84,5 +89,13 @@ export default class Listeners {
         }
         this.listenersQueue.clear();
         this.isBulkUpdate = false;
+    }
+
+    /**
+     * Sets the currentListener which was executed and use getters on proxy traps
+     * @param {ListenerFn} listener The listener function.
+     */
+    setCurrentListener(listener) {
+        this.currentListener = listener;
     }
 }

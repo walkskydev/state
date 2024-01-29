@@ -1,6 +1,8 @@
 {
-  "include": ["./src/**/*"],
-  "exclude": ["node_modules"],
+  "include": ["./src/index.js"],
+  "exclude": ["node_modules",
+    "./src/tests"
+  ],
   "compilerOptions": {
     "allowJs": true,
     "declaration": true,

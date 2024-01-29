@@ -10,12 +10,14 @@ import StatesRegister from "./listeners/StatesRegister.js";
  */
 
 /**
+ * Change the property value and run all listeners. On bulkUpdate all listeners will be merged to listenersQueue and then executed.
  * @param {HandlerParams} params The parameters for the set handler.
  * @return {boolean} The result of setting the property.
  */
 const setHandler = ({ target, property, value, state, statesRegister }) => {
 	const result = Reflect.set(target, property, value);
 	const statePropertiesMap = statesRegister.getPropertiesMap(state);
+
 	if (statePropertiesMap.has(property)) {
 		if (statesRegister.isBulkUpdate) {
 			for (const listener of statePropertiesMap.get(property)) {
@@ -31,22 +33,27 @@ const setHandler = ({ target, property, value, state, statesRegister }) => {
 };
 
 /**
+ * Handler return a property  from target bind property to state. If currentListener is present - it means that this listener need to be
+ * added to property listeners.
+ *
  * @param {HandlerParams} params The parameters for the get handler.
  * @return {unknown} The value of the property.
  */
 const getHandler = ({ target, property, state, statesRegister }) => {
 	const statePropertiesMap = statesRegister.getPropertiesMap(state);
+
 	if (!statePropertiesMap.has(property)) {
 		statePropertiesMap.set(property, StatesRegister.createListenersSet());
 	}
+
 	const propertyListeners = statePropertiesMap.get(property);
-	if (
-		statesRegister.currentListener &&
-		!propertyListeners.has(statesRegister.currentListener)
-	) {
-		propertyListeners.add(statesRegister.currentListener);
+
+	if (statesRegister.currentListener) {
+		if (!propertyListeners.has(statesRegister.currentListener)) {
+			propertyListeners.add(statesRegister.currentListener);
+		}
 	}
-	statesRegister.listenerProperties.add(property);
+
 	return Reflect.get(target, property);
 };
 
