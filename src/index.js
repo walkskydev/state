@@ -1,3 +1,4 @@
+import listenerExecutor from "./listenerExecutor.js";
 import StatesRegister from "./listeners/StatesRegister.js";
 import { createProxy } from "./proxy.js";
 import * as utils from "./utils.js";
@@ -55,15 +56,14 @@ class State {
 	 */
 	subscribe = (listener) => {
 		statesRegister.setCurrentListener(listener);
-		listener();
 
-		const unsubscribe = () => {
-			statesRegister.unsubscribe(listener, this);
-		};
+		listenerExecutor.execute(listener);
 
 		statesRegister.clearCurrentListener();
 
-		return unsubscribe;
+		return () => {
+			statesRegister.unsubscribe(listener, this);
+		};
 	};
 }
 

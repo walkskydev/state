@@ -12,7 +12,7 @@
  * @typedef {Set<ListenerFn>} ListenersSet
 */
 /**
- * A map that holds observable properties
+ * PropertiesMap type represents a Map that pairs string or symbol keys to ListenersSet values.
  * @typedef {Map<string | symbol, ListenersSet>} PropertiesMap
  */
 /**
@@ -20,24 +20,26 @@
  * @typedef {WeakMap<object, PropertiesMap>}  GlobalListenersMap
  */
 
+import callbackExecutor from '../listenerExecutor.js';
+
 /**
  * A class that manages listeners.
  * @class
  * @name Listeners
- * @{
+ * This class manages the listeners for state changes.
  */
 export default class Listeners {
 
     /**
-     * Currently running listener callback.
-     * This callback is executed when the getter Proxy Trap runs.
+     * Current listener being executed.
+     * Triggered when the proxy's getter trap is invoked.
      * @type {ListenerFn|null}
      */
     currentListener = null;
 
     /**
-     * Flag to indicate if a bulk update is currently in progress.
-     * This is used to avoid executing each field listener in case of a multiple fields update.
+     * Flag indicating whether a bulk update is in progress.
+     * It helps to prevent executing each listener during multi-field updates.
      * @type {boolean}
      */
     isBulkUpdate = false;
@@ -49,35 +51,34 @@ export default class Listeners {
     statesMap = new WeakMap();
 
     /**
-     * Queue to store listeners that will be processed.
+     * Queue for storing listeners for execution.
      * @type {ListenersSet}
      */
     listenersQueue = new Set();
 
     /**
-     * Creates a new PropertiesMap instance.
+     * Helper method that creates a new PropertiesMap.
      *
-     * @returns {PropertiesMap}
+     * @returns A new instance of PropertiesMap.
      */
     static createPropertiesMap() {
         return new Map();
     }
 
     /**
-     * Creates a new ListenersSet instance.
+     * Helper method that creates a new ListenersSet.
      *
-     * @returns {ListenersSet}
+     * @returns A new instance of ListenersSet.
      */
     static createListenersSet() {
         return new Set();
     }
 
     /**
-     * Returns a properties map related to a specific state.
-     * If the state doesn't exist in the statesMap, a new entry will be created.
+     * Fetches the PropertiesMap associated with a state.
      *
-     * @param {object} state
-     * @returns {PropertiesMap}
+     * @param {object} state - State to get PropertiesMap from.
+     * @returns The PropertiesMap of the given state. Creates a new PropertiesMap if it doesn't exist.
      */
     getPropertiesMap(state) {
         if (this.statesMap.has(state)) {
@@ -88,19 +89,17 @@ export default class Listeners {
     }
 
     /**
-     * Clears the currentListener field.
+     * Method to clear the currentListener.
      */
     clearCurrentListener() {
         this.currentListener = null;
     }
 
     /**
-     * Unsubscribes a callback from all listeners associated with a given state.
+     * Unsubscribes a given listener callback from all listeners across the state.
      *
      * @param {ListenerFn} cb - The callback function to unsubscribe.
      * @param {object} state - The state object.
-     *
-     * @return {void}
      */
     unsubscribe(cb, state) {
         const props = this.getPropertiesMap(state);
@@ -110,27 +109,28 @@ export default class Listeners {
     }
 
     /**
-     * Executes a bulk update operation.
-     * All listeners related to the state properties being modified during the callback execution
-     * will be added to the listenersQueue. These listeners will be then executed after the callback has finished.
+     * Executes a bulk state update. Adds all listeners related to the state properties being modified during the callback
+     * to the listenersQueue. After the callback execution, these listeners are executed.
      *
-     * @param {ListenerFn} cb
+     * @param {ListenerFn} bulkUpdateTrigger - A function that triggers proxy setters.
      */
-    runBulkUpdate(cb) {
+    runBulkUpdate(bulkUpdateTrigger) {
         this.isBulkUpdate = true;
-        cb();
+        bulkUpdateTrigger();
+
         for (const callback of this.listenersQueue) {
-            callback();
+            callbackExecutor.execute(callback)
         }
+
         this.listenersQueue.clear();
         this.isBulkUpdate = false;
     }
 
     /**
-     * Sets the currentListener field.
-     * This method is used when getters on proxy traps are invoked.
+     * Sets the currentListener.
+     * This method is invoked when fetching values on proxy traps.
      *
-     * @param {ListenerFn} listener The listener function.
+     * @param {ListenerFn} listener - The listener function.
      */
     setCurrentListener(listener) {
         this.currentListener = listener;

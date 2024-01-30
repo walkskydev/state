@@ -1,22 +1,34 @@
+import listenerExecutor from "./listenerExecutor.js";
 import StatesRegister from "./listeners/StatesRegister.js";
 
 /**
  * @typedef {Object} HandlerParams
- * @property {object} target - The target object.
- * @property {string|symbol} property - The property to set or get.
- * @property {object} [state] - The state object.
- * @property {StatesRegister} statesRegister - The StatesRegister instance.
- * @property {unknown} [value] - The new value for the property.
+ * @property {object} target - Original object that actions are performed upon.
+ * @property {string|symbol} property - The property key which is being set or accessed.
+ * @property {object} [state] - Optional state object.
+ * @property {StatesRegister} statesRegister - StatesRegister instance for keeping track of state changes.
+ * @property {unknown} [value] - Optional new value being assigned to the property.
  */
 
 /**
- * Change the property value and run all listeners. On bulkUpdate all listeners will be merged to listenersQueue and then executed.
- * @param {HandlerParams} params The parameters for the set handler.
- * @return {boolean} The result of setting the property.
+ * Attempts to set a new property value, then triggers property listeners. If performing a bulkUpdate, listeners will be queued and executed later.
+ * @param {HandlerParams} params - An object containing parameters needed for property setting and listener execution.
+ * @return {boolean} Reflects the result (success or failure) of the property setting operation.
  */
-const setHandler = ({ target, property, value, state, statesRegister }) => {
-	const result = Reflect.set(target, property, value);
+const createSetTrap = ({ target, property, value, state, statesRegister }) => {
 	const statePropertiesMap = statesRegister.getPropertiesMap(state);
+
+	if (listenerExecutor.isCurrentlyExecuting) {
+		console.warn(
+			`A callback function is currently executing at this store. Setting property '${property}' is not allowed until the current execution finishes.`,
+		);
+
+		statePropertiesMap.get(property).delete(listenerExecutor.listener);
+
+		return true;
+	}
+
+	const result = Reflect.set(target, property, value);
 
 	if (statePropertiesMap.has(property)) {
 		if (statesRegister.isBulkUpdate) {
@@ -25,7 +37,7 @@ const setHandler = ({ target, property, value, state, statesRegister }) => {
 			}
 		} else {
 			for (const listener of statePropertiesMap.get(property)) {
-				listener();
+				callbackExecutor.execute(listener);
 			}
 		}
 	}
@@ -33,13 +45,13 @@ const setHandler = ({ target, property, value, state, statesRegister }) => {
 };
 
 /**
- * Handler return a property  from target bind property to state. If currentListener is present - it means that this listener need to be
- * added to property listeners.
+ * Get handler retrieves a property from the target, ties the property to the state, and
+ * If a currentListener is present, it signifies that this listener needs to be added to the property listeners.
  *
- * @param {HandlerParams} params The parameters for the get handler.
- * @return {unknown} The value of the property.
+ * @param {HandlerParams} params - The parameters required for the get operation.
+ * @return {unknown} The value of the property being accessed.
  */
-const getHandler = ({ target, property, state, statesRegister }) => {
+const createGetTrap = ({ target, property, state, statesRegister }) => {
 	const statePropertiesMap = statesRegister.getPropertiesMap(state);
 
 	if (!statePropertiesMap.has(property)) {
@@ -58,25 +70,27 @@ const getHandler = ({ target, property, state, statesRegister }) => {
 };
 
 /**
- * @param {object} state The state object.
- * @param {StatesRegister} statesRegister The StatesRegister instance.
- * @return {ProxyHandler<object>} The proxy handler.
+ * Constructs a proxy handler for a state object with prescribed set and get actions that interact with the StatesRegister.
+ * @param {object} state - The state object to be handled.
+ * @param {StatesRegister} statesRegister - The StatesRegister handling the state object.
+ * @return {ProxyHandler<object>} The generated proxy handler object.
  */
 const createProxyHandler = (state, statesRegister) => {
 	return {
 		set: (target, property, value) =>
-			setHandler({ target, property, value, state, statesRegister }),
+			createSetTrap({ target, property, value, state, statesRegister }),
 		get: (target, property) =>
-			getHandler({ target, property, state, statesRegister }),
+			createGetTrap({ target, property, state, statesRegister }),
 	};
 };
 
 /**
- * @template T
- * @param {object} rawObj The raw object.
- * @param {object} stateInstance The state instance.
- * @param {StatesRegister} statesRegister The StatesRegister instance.
- * @return {T} The proxy.
+ * Generates a Proxy for a state instance and raw object, enforcing set and get rules defined by the StatesRegister.h
+ *
+ * @param {object} rawObj - The raw (unproxied) object.
+ * @param {object} stateInstance - The instance of the state that the proxy represents.
+ * @param {StatesRegister} statesRegister - The StatesRegister instance managing state instances.
+ * @return {object} The new Proxy object.
  */
 export function createProxy(rawObj, stateInstance, statesRegister) {
 	return new Proxy(
