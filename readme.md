@@ -1,6 +1,6 @@
 - [x] add logging
 - [x] add unsubscribe functionality
-- [ ] write tests
+- [x] write tests
 - [ ] cancel side effects from listeners
 - [ ] generic type for State  
 - [ ] add benchmarks

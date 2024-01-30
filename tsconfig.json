@@ -1,7 +1,7 @@
 {
   "include": ["./src/index.js"],
   "exclude": ["node_modules",
-    "./src/tests"
+    "./src/__tests__"
   ],
   "compilerOptions": {
     "allowJs": true,

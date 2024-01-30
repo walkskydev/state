@@ -5,7 +5,7 @@ import State from '../../index.js';
 import {mutations as m, initial, mutations} from './mocks.js';
 
 
-describe('Listeners callbacks should update object values', () => {
+describe('subscribe & unsubscribe', () => {
     const mutations = {...m};
 
     const state = new State({...initial});
@@ -58,7 +58,7 @@ describe('Listeners callbacks should update object values', () => {
             arrayField: 3,
             objectField: 3,
             booleanField: 3,
-            numberField: 4 // allCb + numbCb
+            numberField: 4 // allCb & numbCb
         });
 
 
@@ -69,7 +69,7 @@ describe('Listeners callbacks should update object values', () => {
         state.setState({stringField: 'banana'})
 
         assert.deepEqual(mutations, {
-            stringField: 4, // allCb + 1
+            stringField: 4, // allCb
             arrayField: 4,
             objectField: 4,
             booleanField: 4,
@@ -79,8 +79,8 @@ describe('Listeners callbacks should update object values', () => {
         state.setState({arrayField: ['pinaple']})
 
         assert.deepEqual(mutations, {
-            stringField: 5, // arrayCb + 1
-            arrayField: 6, // allCb + 1, arrayCb + 1
+            stringField: 5, // arrayCb
+            arrayField: 6, // allCb & arrayCb
             objectField: 5,
             booleanField: 5,
             numberField:6
@@ -126,4 +126,44 @@ describe('Listeners callbacks should update object values', () => {
 
     })
 
+    it('should not execute any callback after all subscribers are removed', () => {
+        state.setState({stringField: 'new value'});
+        state.setState({arrayField: ['new value']});
+        state.setState({objectField: { innerField1: 'new value' }});
+        state.setState({booleanField: false});
+        state.setState({numberField: 99});
+
+        assert.deepEqual(mutations, {
+            stringField: 6,
+            arrayField: 7,
+            objectField: 6,
+            booleanField: 6,
+            numberField: 7
+        });
+    });
+
+    it("same callback can subscribe again", () => {
+        const unsubscribeString2 = state.subscribe(stringFieldCb);
+
+        // stringFieldCb executed on init
+        assert.deepEqual(mutations, {
+            stringField: 7, //stringFieldCb
+            arrayField: 7,
+            objectField: 6,
+            booleanField: 6,
+            numberField: 7
+        });
+
+        state.setState({stringField: 'new value 1'});
+
+        assert.deepEqual(mutations, {
+            stringField: 8,
+            arrayField: 7,
+            objectField: 6,
+            booleanField: 6,
+            numberField: 7
+        });
+
+        unsubscribeString2();
+    })
 })
