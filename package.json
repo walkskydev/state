@@ -1,5 +1,6 @@
 {
   "name": "state",
+  "tags": [],
   "version": "0.1.0",
   "description": "Framework-agnostic state manager",
   "main": "index.js",
