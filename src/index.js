@@ -5,10 +5,17 @@ import * as utils from "./utils.js";
 
 const statesRegister = new StatesRegister();
 
+/**
+ * State instance
+ * @namespace State
+ * @template T
+ * @property {Function} getState Returns the state
+ * @property {function(Partial<T>):void} setState Sets the new state
+ * @property {function(Function):Function} subscribe Subscribes a listener to changes in state
+ */
 class State {
 	/**
-	 * @namespace State
-	 * @template T
+
 	 * @constructor
 	 * @param {T} value - The initial value for the instance.
 	 * @throws {Error} Throws an error if the value is not an object.

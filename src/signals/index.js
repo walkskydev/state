@@ -8,10 +8,16 @@ import State from '../index.js';
  * @typedef {() => {}} Set  An updater function that allows the state value to be updated
  * @returns {[T, Set]} - A tuple where the first element is a function to retrieve the current state value and the second element is the Updater function.
  */
+
+export let subscribe;
+
 function createSignal(value){
   const state = new State(value);
 
+  subscribe = state.subscribe;
+
   return [state.getState, state.setState]
 }
+
 
 export default createSignal;

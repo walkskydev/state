@@ -106,20 +106,26 @@ customElements.define("my-custom-element", MyCustomElement);
 ```
 ### React
 ```tsx
-import create from 'walksky/react'
+import useHook from 'walksky/hook'
 
-const usestate = create({apples: 1});
+const useApplesState = useHook({apples: 1});
 
 const MyComponent = () => {
-    const {apples} = usestate();
+    const [apples, setApples] = useApplesState();
     
     const increaseApples = () => {
-        apples += 1;
+        setApples({apples: apples + 1});
+    }
+    
+    // mutation is allowed by default
+    const decreaseApples = () => {
+        apples--;
     }
 
     return (
         <div>
             <h1>Apples: {fruits.apples}</h1>
+            <button onClick={increaseApples}>Increase Apples</button>
             <button onClick={increaseApples}>Increase Apples</button>
         </div>
     );

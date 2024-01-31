@@ -7,17 +7,22 @@
     "type": "git",
     "url": "https://github.com/walkskydev/state.git"
   },
-
   "main": "index.js",
   "types": "index.d.ts",
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -r ./src/* ./dist/",
     "prepare": "husky",
     "lint": "biome check ./src/*.js --apply",
     "test": "mocha --recursive ./__tests__"
   },
-  "keywords": ["state-manager", "signals", "web-components", "react", "state"],
+  "keywords": [
+    "state-manager",
+    "signals",
+    "web-components",
+    "react",
+    "state"
+  ],
   "bugs": {
     "url": "https://github.com/walkskydev/state/issues"
   },
@@ -32,5 +37,8 @@
     "husky": "^9.0.6",
     "mocha": "^10.2.0",
     "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0"
   }
 }
