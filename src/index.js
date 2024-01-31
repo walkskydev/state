@@ -24,10 +24,6 @@ class State {
 		}
 	}
 
-	/**
-	 * @private
-	 * @type {T}
-	 */
 	#state;
 
 	/**

@@ -10,7 +10,7 @@
     "build": "tsc",
     "prepare": "husky",
     "lint": "biome check ./src/*.js --apply",
-    "test": "mocha --recursive ./src"
+    "test": "mocha --recursive ./__tests__"
   },
   "keywords": [],
   "author": "",

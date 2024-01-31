@@ -16,14 +16,14 @@ import StatesRegister from "./listeners/StatesRegister.js";
  * @return {boolean} Reflects the result (success or failure) of the property setting operation.
  */
 const createSetTrap = ({ target, property, value, state, statesRegister }) => {
-	const statePropertiesMap = statesRegister.getPropertiesMap(state);
+	const statePropertiesMap = statesRegister.getStatePropertiesMap(state);
 
 	if (listenerExecutor.isCurrentlyExecuting) {
 		console.warn(
 			`A callback function is currently executing at this store. Setting property '${property}' is not allowed until the current execution finishes.`,
 		);
 
-		statePropertiesMap.get(property).delete(listenerExecutor.listener);
+		statesRegister.unsubscribe(listenerExecutor.listener, state);
 
 		return true;
 	}
@@ -37,7 +37,7 @@ const createSetTrap = ({ target, property, value, state, statesRegister }) => {
 			}
 		} else {
 			for (const listener of statePropertiesMap.get(property)) {
-				callbackExecutor.execute(listener);
+				listenerExecutor.execute(listener);
 			}
 		}
 	}
@@ -52,7 +52,7 @@ const createSetTrap = ({ target, property, value, state, statesRegister }) => {
  * @return {unknown} The value of the property being accessed.
  */
 const createGetTrap = ({ target, property, state, statesRegister }) => {
-	const statePropertiesMap = statesRegister.getPropertiesMap(state);
+	const statePropertiesMap = statesRegister.getStatePropertiesMap(state);
 
 	if (!statePropertiesMap.has(property)) {
 		statePropertiesMap.set(property, StatesRegister.createListenersSet());

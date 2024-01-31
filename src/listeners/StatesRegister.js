@@ -12,7 +12,7 @@
  * @typedef {Set<ListenerFn>} ListenersSet
 */
 /**
- * PropertiesMap type represents a Map that pairs string or symbol keys to ListenersSet values.
+ * PropertiesMap type represents a Map that pairs property keys to ListenersSet values.
  * @typedef {Map<string | symbol, ListenersSet>} PropertiesMap
  */
 /**
@@ -23,12 +23,12 @@
 import callbackExecutor from '../listenerExecutor.js';
 
 /**
- * A class that manages listeners.
+ * A class that manages states with properties listeners.
  * @class
- * @name Listeners
+ * @name StatesRegister
  * This class manages the listeners for state changes.
  */
-export default class Listeners {
+export default class StatesRegister {
 
     /**
      * Current listener being executed.
@@ -59,7 +59,7 @@ export default class Listeners {
     /**
      * Helper method that creates a new PropertiesMap.
      *
-     * @returns A new instance of PropertiesMap.
+     * @returns {Map} A new instance of PropertiesMap.
      */
     static createPropertiesMap() {
         return new Map();
@@ -68,7 +68,7 @@ export default class Listeners {
     /**
      * Helper method that creates a new ListenersSet.
      *
-     * @returns A new instance of ListenersSet.
+     * @returns {Set} A new instance of ListenersSet.
      */
     static createListenersSet() {
         return new Set();
@@ -78,13 +78,13 @@ export default class Listeners {
      * Fetches the PropertiesMap associated with a state.
      *
      * @param {object} state - State to get PropertiesMap from.
-     * @returns The PropertiesMap of the given state. Creates a new PropertiesMap if it doesn't exist.
+     * @returns {PropertiesMap} The PropertiesMap of the given state. Creates a new PropertiesMap if it doesn't exist.
      */
-    getPropertiesMap(state) {
+    getStatePropertiesMap(state) {
         if (this.statesMap.has(state)) {
             return this.statesMap.get(state);
         }
-        this.statesMap.set(state, Listeners.createPropertiesMap());
+        this.statesMap.set(state, StatesRegister.createPropertiesMap());
         return this.statesMap.get(state);
     }
 
@@ -99,10 +99,10 @@ export default class Listeners {
      * Unsubscribes a given listener callback from all listeners across the state.
      *
      * @param {ListenerFn} cb - The callback function to unsubscribe.
-     * @param {object} state - The state object.
+     * @param {State} state - The state object.
      */
     unsubscribe(cb, state) {
-        const props = this.getPropertiesMap(state);
+        const props = this.getStatePropertiesMap(state);
         for (const [, listeners] of props) {
             listeners.delete(cb)
         }
@@ -136,5 +136,3 @@ export default class Listeners {
         this.currentListener = listener;
     }
 }
-
-/** @} */

@@ -1,6 +1,6 @@
 import { describe, it } from 'mocha';
 import { assert } from 'chai';
-import State from '../../index.js';
+import State from '../../src/index.js';
 
 import {mutations as m, initial, mutations} from './mocks.js';
 
@@ -164,6 +164,18 @@ describe('subscribe & unsubscribe', () => {
             numberField: 7
         });
 
-        unsubscribeString2();
     })
+
+    it('mutation should run listener ', () => {
+        state.getState().stringField = 'new value 2'
+        assert.deepEqual(mutations, {
+            stringField: 9,
+            arrayField: 7,
+            objectField: 6,
+            booleanField: 6,
+            numberField: 7
+        });
+    });
+
+
 })

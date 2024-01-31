@@ -1,7 +1,7 @@
 import { describe, it } from 'mocha';
 import { assert } from 'chai';
 
-import State from '../../index.js'
+import State from '../../src/index.js'
 
 describe("set state", () => {
   const initialState = {
@@ -31,5 +31,10 @@ describe("set state", () => {
       state.setState({ price: 1.5 });
       state.setState({ markets: ['Market A', 'Market B'] });
       assert.deepEqual(state.getState(), { apples: 5, price: 1.5, markets: ['Market A', 'Market B'] });
+  })
+
+  it('mutaion state should works', () => {
+    state.setState({ apples: 10 });
+    assert.equal(state.getState().apples, 10);
   })
 })
