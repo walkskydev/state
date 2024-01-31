@@ -1,12 +1,35 @@
 # State
 
 ## Overview
-Efficient, framework agnostic state manager, 
-and highly adaptable state manager optimized for robust functionality.
+Efficient, framework agnostic state manager, and highly adaptable state manager optimized for robust functionality.
 
-### Automatic selectors
-You don`t need to care about dependencies in your components or functions.
-Your callback will be called only if certain used was changed.
+### Automatic memoized/computed
+You don't need to care about dependencies in your components or functions.
+Your callback will be called only if any of the used values was changed.
+
+```tsx
+// userState.ts
+export const [user, setUser] = createState({name: '', email: ''});
+// That`s re-render your component once
+setUser({name: 'John', email: 'example@john.com'})
+
+// MyComponent.tsx
+const MyComponent = () => (
+    <ul>
+        <li>Your name is "{user().name}"</li>
+        <li>Your email is <code>{user().email}</code></li>
+    </ul>
+);
+
+const computed = () => 
+    `Your names is: ${user().name} and email is: ${user().email}`
+
+// No matter one or two valuess will be changed - your component  will re-render once
+const UserInfo = () => (
+    <p>{computed()}</p>
+);
+
+```
 
 ### 
 
@@ -64,7 +87,7 @@ const MyComponent = () => {
 };
 ```
 ### Web components
-All you need is subscribe in `connectedCallback` in your lifecycle callbacks
+All you need is to subscribe in `connectedCallback` in your lifecycle callbacks
 ```javascript
  // Create a class for the element
 class MyCustomElement extends HTMLElement {
@@ -116,7 +139,7 @@ This method returns the current state.
 This method allows components to subscribe and listen for any changes happening to the state. On subscribe, it returns a function that can later be called to unsubscribe.
 
 ### setState()
-Sets the state
+This method sets the state.
 
 ## Todo
 
@@ -126,7 +149,7 @@ Sets the state
 - [x] cancel side effects from listeners
 - [x] generic type for State  
 - [ ] add benchmarks
-- [ ] primitives support
+- [ ] support for primitives
 - [ ] mutable/immutable options
 - [ ] add readme
 - [ ] add middlewares

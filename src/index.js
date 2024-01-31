@@ -5,13 +5,10 @@ import * as utils from "./utils.js";
 
 const statesRegister = new StatesRegister();
 
-/**
- * Represents a state that can be subscribed to and updated.
- * @class
- * @template T - The type of the state value
- */
 class State {
 	/**
+	 * @namespace State
+	 * @template T
 	 * @constructor
 	 * @param {T} value - The initial value for the instance.
 	 * @throws {Error} Throws an error if the value is not an object.

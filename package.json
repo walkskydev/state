@@ -1,8 +1,13 @@
 {
-  "name": "state",
+  "name": "@walksky/state",
   "tags": [],
   "version": "0.1.0",
-  "description": "Framework-agnostic state manager",
+  "description": "Efficient, framework agnostic state manager, and highly adaptable state manager optimized for robust functionality.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/walkskydev/state.git"
+  },
+
   "main": "index.js",
   "types": "index.d.ts",
   "type": "module",
@@ -12,9 +17,13 @@
     "lint": "biome check ./src/*.js --apply",
     "test": "mocha --recursive ./__tests__"
   },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
+  "keywords": ["state-manager", "signals", "web-components", "react", "state"],
+  "bugs": {
+    "url": "https://github.com/walkskydev/state/issues"
+  },
+  "homepage": "https://github.com/walkskydev/state",
+  "author": "Valerii Volkovskyi",
+  "license": "ISC",
   "devDependencies": {
     "@biomejs/biome": "1.5.3",
     "assert": "^2.1.0",
