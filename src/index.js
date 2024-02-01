@@ -42,7 +42,7 @@ class State {
 	 * @param {Partial<T>} newValue
 	 */
 	setState = (newValue) => {
-		statesRegister.runBulkUpdate(() => {
+		listenerExecutor.runBulkUpdate(() => {
 			Object.assign(this.#state, newValue);
 		});
 	};

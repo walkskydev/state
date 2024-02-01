@@ -31,9 +31,9 @@ const createSetTrap = ({ target, property, value, state, statesRegister }) => {
 	const result = Reflect.set(target, property, value);
 
 	if (statePropertiesMap.has(property)) {
-		if (statesRegister.isBulkUpdate) {
+		if (listenerExecutor.isBulkUpdate) {
 			for (const listener of statePropertiesMap.get(property)) {
-				statesRegister.listenersQueue.add(listener);
+				listenerExecutor.addToQueue(listener);
 			}
 		} else {
 			for (const listener of statePropertiesMap.get(property)) {

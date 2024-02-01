@@ -31,23 +31,10 @@ import callbackExecutor from '../listenerExecutor.js';
 export default class StatesRegister {
 
     /**
-     * Flag indicating whether a bulk update is in progress.
-     * It helps to prevent executing each listener during multi-field updates.
-     * @type {boolean}
-     */
-    isBulkUpdate = false;
-
-    /**
      * Global Map storing all states instances.
      * @type {GlobalListenersMap}
      */
     statesMap = new WeakMap();
-
-    /**
-     * Queue for storing listeners for execution.
-     * @type {ListenersSet}
-     */
-    listenersQueue = new Set();
 
     /**
      * Helper method that creates a new PropertiesMap.
@@ -94,23 +81,4 @@ export default class StatesRegister {
             listeners.delete(cb)
         }
     }
-
-    /**
-     * Executes a bulk state update. Adds all listeners related to the state properties being modified during the callback
-     * to the listenersQueue. After the callback execution, these listeners are executed.
-     *
-     * @param {ListenerFn} bulkUpdateTrigger - A function that triggers proxy setters.
-     */
-    runBulkUpdate(bulkUpdateTrigger) {
-        this.isBulkUpdate = true;
-        bulkUpdateTrigger();
-
-        for (const callback of this.listenersQueue) {
-            callbackExecutor.execute(callback)
-        }
-
-        this.listenersQueue.clear();
-        this.isBulkUpdate = false;
-    }
-
 }

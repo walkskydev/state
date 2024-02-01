@@ -10,6 +10,8 @@ class ListenerExecutor {
 	 */
 	listener = null;
 
+	isBulkUpdate = false;
+
 	#callbacksQueue = new Set();
 
 	addToQueue(callback) {
@@ -18,7 +20,6 @@ class ListenerExecutor {
 
 	/**
 	 * Setter function for updating the executor function of the listener.
-	 *
 	 * @param {Function} fn - The function that will be used for execution by the listener.
 	 */
 	#setExecutor(fn) {
@@ -37,6 +38,18 @@ class ListenerExecutor {
 		this.#setExecutor(callback);
 		callback();
 		this.#setExecutor(null);
+	}
+
+	runBulkUpdate(bulkUpdateTrigger) {
+		this.isBulkUpdate = true;
+		bulkUpdateTrigger();
+
+		for (const callback of this.#callbacksQueue) {
+			this.execute(callback);
+		}
+
+		this.#callbacksQueue.clear();
+		this.isBulkUpdate = false;
 	}
 }
 
