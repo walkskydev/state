@@ -1,9 +1,9 @@
-import listenerExecutor from "./listenerExecutor.js";
-import StatesRegister from "./listeners/StatesRegister.js";
+import listenerExecutor from "./Executor.js";
+import ListenersRegister from "./listeners/ListenersRegister.js";
 import { createProxy } from "./proxy.js";
 import * as utils from "./utils.js";
 
-const statesRegister = new StatesRegister();
+const listenersRegister = new ListenersRegister();
 
 /**
  * State instance
@@ -22,7 +22,7 @@ class State {
 	 */
 	constructor(value) {
 		if (utils.isObject(value)) {
-			this.#state = createProxy(value, this, statesRegister);
+			this.#state = createProxy(value, this, listenersRegister);
 		} else {
 			throw new Error("This type is not supported yet!");
 		}
@@ -58,7 +58,7 @@ class State {
 		listenerExecutor.execute(listener);
 
 		return () => {
-			statesRegister.unsubscribe(listener, this);
+			listenersRegister.unsubscribe(listener, this);
 		};
 	};
 }

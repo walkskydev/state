@@ -1,9 +1,9 @@
 import {assert} from 'chai';
-import StatesRegister from '../../src/listeners/StatesRegister.js';
+import ListenersRegister from '../../src/listeners/ListenersRegister.js';
 
 
 describe('getPropertiesMap method', () => {
-  const listeners = new StatesRegister();
+  const listeners = new ListenersRegister();
 
   it('should return correct PropertiesMap from given state', () => {
     const state = { key: 'value' };

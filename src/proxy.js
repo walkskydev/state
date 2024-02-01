@@ -1,12 +1,12 @@
-import listenerExecutor from "./listenerExecutor.js";
-import StatesRegister from "./listeners/StatesRegister.js";
+import listenerExecutor from "./Executor.js";
+import ListenersRegister from "./listeners/ListenersRegister.js";
 
 /**
  * @typedef {Object} HandlerParams
  * @property {object} target - Original object that actions are performed upon.
  * @property {string|symbol} property - The property key which is being set or accessed.
  * @property {object} [state] - Optional state object.
- * @property {StatesRegister} statesRegister - StatesRegister instance for keeping track of state changes.
+ * @property {ListenersRegister} statesRegister - ListenersRegister instance for keeping track of state changes.
  * @property {unknown} [value] - Optional new value being assigned to the property.
  */
 
@@ -55,7 +55,7 @@ const createGetTrap = ({ target, property, state, statesRegister }) => {
 	const statePropertiesMap = statesRegister.getStatePropertiesMap(state);
 
 	if (!statePropertiesMap.has(property)) {
-		statePropertiesMap.set(property, StatesRegister.createListenersSet());
+		statePropertiesMap.set(property, ListenersRegister.createListenersSet());
 	}
 
 	const propertyListeners = statePropertiesMap.get(property);
@@ -70,9 +70,9 @@ const createGetTrap = ({ target, property, state, statesRegister }) => {
 };
 
 /**
- * Constructs a proxy handler for a state object with prescribed set and get actions that interact with the StatesRegister.
+ * Constructs a proxy handler for a state object with prescribed set and get actions that interact with the ListenersRegister.
  * @param {object} state - The state object to be handled.
- * @param {StatesRegister} statesRegister - The StatesRegister handling the state object.
+ * @param {ListenersRegister} statesRegister - The ListenersRegister handling the state object.
  * @return {ProxyHandler<object>} The generated proxy handler object.
  */
 const createProxyHandler = (state, statesRegister) => {
@@ -85,11 +85,11 @@ const createProxyHandler = (state, statesRegister) => {
 };
 
 /**
- * Generates a Proxy for a state instance and raw object, enforcing set and get rules defined by the StatesRegister.h
+ * Generates a Proxy for a state instance and raw object, enforcing set and get rules defined by the ListenersRegister.h
  *
  * @param {object} rawObj - The raw (unproxied) object.
  * @param {object} stateInstance - The instance of the state that the proxy represents.
- * @param {StatesRegister} statesRegister - The StatesRegister instance managing state instances.
+ * @param {ListenersRegister} statesRegister - The ListenersRegister instance managing state instances.
  * @return {object} The new Proxy object.
  */
 export function createProxy(rawObj, stateInstance, statesRegister) {

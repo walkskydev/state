@@ -1,7 +1,7 @@
 /**
  * Represents an executor for callback events.
  */
-class ListenerExecutor {
+class Executor {
 	/**
 	 * The callback function that the listener is currently executing.
 	 * Null of no function is being executed
@@ -53,4 +53,4 @@ class ListenerExecutor {
 	}
 }
 
-export default new ListenerExecutor();
+export default new Executor();

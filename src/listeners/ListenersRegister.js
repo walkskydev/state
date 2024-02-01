@@ -1,7 +1,3 @@
-/**
- * @namespace listenerNamespace
- * @{
- */
 
 /**
  * A function with no parameters and no return value.
@@ -20,15 +16,15 @@
  * @typedef {WeakMap<object, PropertiesMap>}  GlobalListenersMap
  */
 
-import callbackExecutor from '../listenerExecutor.js';
+import callbackExecutor from '../Executor.js';
 
 /**
  * A class that manages states with properties listeners.
  * @class
- * @name StatesRegister
+ * @name ListenersRegister
  * This class manages the listeners for state changes.
  */
-export default class StatesRegister {
+export default class ListenersRegister {
 
     /**
      * Global Map storing all states instances.
@@ -64,7 +60,7 @@ export default class StatesRegister {
         if (this.statesMap.has(state)) {
             return this.statesMap.get(state);
         }
-        this.statesMap.set(state, StatesRegister.createPropertiesMap());
+        this.statesMap.set(state, ListenersRegister.createPropertiesMap());
         return this.statesMap.get(state);
     }
 
