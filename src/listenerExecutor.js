@@ -3,13 +3,6 @@
  */
 class ListenerExecutor {
 	/**
-	 * Indicates the execution state of the listener. i.e., whether it is currently in the process of executing a callback or not.
-	 *
-	 * @type {boolean}
-	 */
-	isCurrentlyExecuting = false;
-
-	/**
 	 * The callback function that the listener is currently executing.
 	 * Null of no function is being executed
 	 *
@@ -17,13 +10,10 @@ class ListenerExecutor {
 	 */
 	listener = null;
 
-	/**
-	 * Setter function for updating the execution state of the listener.
-	 *
-	 * @param {boolean} value - The new state to be set, indicating whether the listener is currently executing or not.
-	 */
-	#setIsCurrentlyExecuting(value) {
-		this.isCurrentlyExecuting = value;
+	#callbacksQueue = new Set();
+
+	addToQueue(callback) {
+		this.#callbacksQueue.add(callback);
 	}
 
 	/**
@@ -44,10 +34,8 @@ class ListenerExecutor {
 	 * @return {void}
 	 */
 	execute(callback) {
-		this.#setIsCurrentlyExecuting(true);
 		this.#setExecutor(callback);
 		callback();
-		this.#setIsCurrentlyExecuting(false);
 		this.#setExecutor(null);
 	}
 }

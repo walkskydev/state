@@ -18,7 +18,7 @@ import StatesRegister from "./listeners/StatesRegister.js";
 const createSetTrap = ({ target, property, value, state, statesRegister }) => {
 	const statePropertiesMap = statesRegister.getStatePropertiesMap(state);
 
-	if (listenerExecutor.isCurrentlyExecuting) {
+	if (listenerExecutor.listener) {
 		console.warn(
 			`A callback function is currently executing at this store. Setting property '${property}' is not allowed until the current execution finishes.`,
 		);
@@ -60,9 +60,9 @@ const createGetTrap = ({ target, property, state, statesRegister }) => {
 
 	const propertyListeners = statePropertiesMap.get(property);
 
-	if (statesRegister.currentListener) {
-		if (!propertyListeners.has(statesRegister.currentListener)) {
-			propertyListeners.add(statesRegister.currentListener);
+	if (listenerExecutor.listener) {
+		if (!propertyListeners.has(listenerExecutor.listener)) {
+			propertyListeners.add(listenerExecutor.listener);
 		}
 	}
 

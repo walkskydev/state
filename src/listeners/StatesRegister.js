@@ -31,13 +31,6 @@ import callbackExecutor from '../listenerExecutor.js';
 export default class StatesRegister {
 
     /**
-     * Current listener being executed.
-     * Triggered when the proxy's getter trap is invoked.
-     * @type {ListenerFn|null}
-     */
-    currentListener = null;
-
-    /**
      * Flag indicating whether a bulk update is in progress.
      * It helps to prevent executing each listener during multi-field updates.
      * @type {boolean}
@@ -88,12 +81,6 @@ export default class StatesRegister {
         return this.statesMap.get(state);
     }
 
-    /**
-     * Method to clear the currentListener.
-     */
-    clearCurrentListener() {
-        this.currentListener = null;
-    }
 
     /**
      * Unsubscribes a given listener callback from all listeners across the state.
@@ -126,13 +113,4 @@ export default class StatesRegister {
         this.isBulkUpdate = false;
     }
 
-    /**
-     * Sets the currentListener.
-     * This method is invoked when fetching values on proxy traps.
-     *
-     * @param {ListenerFn} listener - The listener function.
-     */
-    setCurrentListener(listener) {
-        this.currentListener = listener;
-    }
 }

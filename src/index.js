@@ -55,11 +55,7 @@ class State {
 	 * @return {function} An unsubscribe function to remove the listener.
 	 */
 	subscribe = (listener) => {
-		statesRegister.setCurrentListener(listener);
-
 		listenerExecutor.execute(listener);
-
-		statesRegister.clearCurrentListener();
 
 		return () => {
 			statesRegister.unsubscribe(listener, this);
