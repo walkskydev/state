@@ -1,5 +1,4 @@
-import listenerExecutor from "./Executor.js";
-import ListenersRegister from "./listeners/ListenersRegister.js";
+import callbackExecutor from "./listeners/callbackExecutor.js";
 
 /**
  * @typedef {Object} HandlerParams
@@ -12,18 +11,18 @@ import ListenersRegister from "./listeners/ListenersRegister.js";
 
 /**
  * Attempts to set a new property value, then triggers property listeners. If performing a bulkUpdate, listeners will be queued and executed later.
- * @param {HandlerParams} params - An object containing parameters needed for property setting and listener execution.
+ * @param {HandlerParams} params - An object containing parameters needed for property setting and activeCallback execution.
  * @return {boolean} Reflects the result (success or failure) of the property setting operation.
  */
 const createSetTrap = ({ target, property, value, state, statesRegister }) => {
 	const statePropertiesMap = statesRegister.getStatePropertiesMap(state);
 
-	if (listenerExecutor.listener) {
+	if (callbackExecutor.activeCallback) {
 		console.warn(
 			`A callback function is currently executing at this store. Setting property '${property}' is not allowed.`,
 		);
 
-		statesRegister.unsubscribe(listenerExecutor.listener, state);
+		statesRegister.unsubscribe(callbackExecutor.activeCallback, state);
 
 		return true;
 	}
@@ -32,7 +31,7 @@ const createSetTrap = ({ target, property, value, state, statesRegister }) => {
 
 	if (statePropertiesMap.has(property)) {
 		for (const listener of statePropertiesMap.get(property)) {
-			listenerExecutor.addToQueue(listener);
+			callbackExecutor.pushToPending(listener);
 		}
 	}
 	return result;
@@ -40,7 +39,7 @@ const createSetTrap = ({ target, property, value, state, statesRegister }) => {
 
 /**
  * Get handler retrieves a property from the target, ties the property to the state, and
- * If a currentListener is present, it signifies that this listener needs to be added to the property listeners.
+ * If a currentListener is present, it signifies that this activeCallback needs to be added to the property listeners.
  *
  * @param {HandlerParams} params - The parameters required for the get operation.
  * @return {unknown} The value of the property being accessed.
@@ -49,14 +48,14 @@ const createGetTrap = ({ target, property, state, statesRegister }) => {
 	const statePropertiesMap = statesRegister.getStatePropertiesMap(state);
 
 	if (!statePropertiesMap.has(property)) {
-		statePropertiesMap.set(property, ListenersRegister.createListenersSet());
+		statePropertiesMap.set(property, new Set());
 	}
 
 	const propertyListeners = statePropertiesMap.get(property);
 
-	if (listenerExecutor.listener) {
-		if (!propertyListeners.has(listenerExecutor.listener)) {
-			propertyListeners.add(listenerExecutor.listener);
+	if (callbackExecutor.activeCallback) {
+		if (!propertyListeners.has(callbackExecutor.activeCallback)) {
+			propertyListeners.add(callbackExecutor.activeCallback);
 		}
 	}
 

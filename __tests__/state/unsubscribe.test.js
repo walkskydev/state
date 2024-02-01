@@ -64,7 +64,7 @@ describe('subscribe & unsubscribe', () => {
 
     });
 
-    it('after unsubscribe listener should not execute again', () => {
+    it('after unsubscribe activeCallback should not execute again', () => {
         unsubscribeString();
         state.setState({stringField: 'banana'})
 
@@ -88,7 +88,7 @@ describe('subscribe & unsubscribe', () => {
 
     })
 
-    it('should unsubscribe all listeners except all dependencies listener', () => {
+    it('should unsubscribe all listeners except all dependencies activeCallback', () => {
             unsubscribeArray();
             unsubscribeObject();
             unsubscribeBoolean();
@@ -166,7 +166,7 @@ describe('subscribe & unsubscribe', () => {
 
     })
 
-    it('mutation should run listener ', () => {
+    it('mutation should run activeCallback ', () => {
         state.getState().stringField = 'new value 2'
         assert.deepEqual(mutations, {
             stringField: 9,

@@ -1,17 +1,14 @@
-import listenerExecutor from "./Executor.js";
-import ListenersRegister from "./listeners/ListenersRegister.js";
+import listenerExecutor from "./listeners/callbackExecutor.js";
+import listenersRegister from "./listeners/listenersRegister.js";
 import { createProxy } from "./proxy.js";
 import * as utils from "./utils.js";
 
-const listenersRegister = new ListenersRegister();
-
 /**
  * State instance
- * @namespace State
  * @template T
  * @property {Function} getState Returns the state
  * @property {function(Partial<T>):void} setState Sets the new state
- * @property {function(Function):Function} subscribe Subscribes a listener to changes in state
+ * @property {function(Function):Function} subscribe Subscribes a activeCallback to changes in state
  */
 class State {
 	/**
@@ -42,17 +39,17 @@ class State {
 	 * @param {Partial<T>} newValue
 	 */
 	setState = (newValue) => {
-		listenerExecutor.runBulkUpdate(() => {
+		listenerExecutor.runBatchUpdate(() => {
 			Object.assign(this.#state, newValue);
 		});
 	};
 
 	/**
-	 * Subscribe a listener to changes in state.
+	 * Subscribe a activeCallback to changes in state.
 	 *
-	 * @param {function} listener - The listener function to be called when a change occurs.
+	 * @param {function} listener - The activeCallback function to be called when a change occurs.
 	 *
-	 * @return {function} An unsubscribe function to remove the listener.
+	 * @return {function} An unsubscribe function to remove the activeCallback.
 	 */
 	subscribe = (listener) => {
 		listenerExecutor.execute(listener);

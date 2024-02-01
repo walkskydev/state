@@ -16,39 +16,19 @@
  * @typedef {WeakMap<object, PropertiesMap>}  GlobalListenersMap
  */
 
-import callbackExecutor from '../Executor.js';
-
 /**
  * A class that manages states with properties listeners.
  * @class
  * @name ListenersRegister
  * This class manages the listeners for state changes.
  */
-export default class ListenersRegister {
+class ListenersRegister {
 
     /**
      * Global Map storing all states instances.
      * @type {GlobalListenersMap}
      */
     statesMap = new WeakMap();
-
-    /**
-     * Helper method that creates a new PropertiesMap.
-     *
-     * @returns {Map} A new instance of PropertiesMap.
-     */
-    static createPropertiesMap() {
-        return new Map();
-    }
-
-    /**
-     * Helper method that creates a new ListenersSet.
-     *
-     * @returns {Set} A new instance of ListenersSet.
-     */
-    static createListenersSet() {
-        return new Set();
-    }
 
     /**
      * Fetches the PropertiesMap associated with a state.
@@ -60,13 +40,13 @@ export default class ListenersRegister {
         if (this.statesMap.has(state)) {
             return this.statesMap.get(state);
         }
-        this.statesMap.set(state, ListenersRegister.createPropertiesMap());
+        this.statesMap.set(state, new Map());
         return this.statesMap.get(state);
     }
 
 
     /**
-     * Unsubscribes a given listener callback from all listeners across the state.
+     * Unsubscribes a given activeCallback callback from all listeners across the state.
      *
      * @param {ListenerFn} cb - The callback function to unsubscribe.
      * @param {State} state - The state object.
@@ -78,3 +58,6 @@ export default class ListenersRegister {
         }
     }
 }
+
+export default new ListenersRegister();
+
