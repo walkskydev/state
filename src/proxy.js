@@ -20,7 +20,7 @@ const createSetTrap = ({ target, property, value, state, statesRegister }) => {
 
 	if (listenerExecutor.listener) {
 		console.warn(
-			`A callback function is currently executing at this store. Setting property '${property}' is not allowed until the current execution finishes.`,
+			`A callback function is currently executing at this store. Setting property '${property}' is not allowed.`,
 		);
 
 		statesRegister.unsubscribe(listenerExecutor.listener, state);
@@ -31,14 +31,8 @@ const createSetTrap = ({ target, property, value, state, statesRegister }) => {
 	const result = Reflect.set(target, property, value);
 
 	if (statePropertiesMap.has(property)) {
-		if (listenerExecutor.isBulkUpdate) {
-			for (const listener of statePropertiesMap.get(property)) {
-				listenerExecutor.addToQueue(listener);
-			}
-		} else {
-			for (const listener of statePropertiesMap.get(property)) {
-				listenerExecutor.execute(listener);
-			}
+		for (const listener of statePropertiesMap.get(property)) {
+			listenerExecutor.addToQueue(listener);
 		}
 	}
 	return result;

@@ -15,7 +15,11 @@ class Executor {
 	#callbacksQueue = new Set();
 
 	addToQueue(callback) {
-		this.#callbacksQueue.add(callback);
+		if (this.isBulkUpdate) {
+			this.#callbacksQueue.add(callback);
+		} else {
+			this.execute(callback);
+		}
 	}
 
 	/**
@@ -40,13 +44,15 @@ class Executor {
 		this.#setExecutor(null);
 	}
 
+	#executeQueue() {
+		for (const callback of this.#callbacksQueue) callback();
+	}
+
 	runBulkUpdate(bulkUpdateTrigger) {
 		this.isBulkUpdate = true;
-		bulkUpdateTrigger();
 
-		for (const callback of this.#callbacksQueue) {
-			this.execute(callback);
-		}
+		bulkUpdateTrigger();
+		this.#executeQueue();
 
 		this.#callbacksQueue.clear();
 		this.isBulkUpdate = false;
