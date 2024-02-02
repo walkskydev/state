@@ -1,16 +1,16 @@
+// @ts-ignore
 import { useSyncExternalStore } from 'react';
 import State from '../../src/index.js'
 
 /**
- * A custom hook that initializes a state with the given value and returns
- * data from a synchronous external store along with the ability to update
- * the state.
- *
- * @typedef {function} setState
+ * @exports State from "../index"
+ */
+
+
+/**
  * @template T
- * @param {T} value - The initial value for the state.
- * @returns {[value, setState]} - An array containing the data from the external store
- *                    and a function to update the state.
+ * @param {T} value
+ * @returns {[T, (newValue: Partial<T>) => void]} Setter
  */
 export default function useHook(value) {
   const state = new State(value)
@@ -18,5 +18,3 @@ export default function useHook(value) {
 
   return [data, state.setState];
 }
-
-// npm i use-sync-external-store
