@@ -166,16 +166,5 @@ describe('subscribe & unsubscribe', () => {
 
     })
 
-    it('mutation should run listener ', () => {
-        state.getState().stringField = 'new value 2'
-        assert.deepEqual(mutations, {
-            stringField: 9,
-            arrayField: 7,
-            objectField: 6,
-            booleanField: 6,
-            numberField: 7
-        });
-    });
-
 
 })

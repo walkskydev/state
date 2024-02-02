@@ -28,11 +28,7 @@ class CallbackExecutor {
 	 * @param {callback} callback - Callback to be added to pending or executed directly
 	 */
 	pushToPending(callback) {
-		if (this.isBatchUpdateMode) {
-			this.#pendingCallbacks.add(callback);
-		} else {
-			this.execute(callback);
-		}
+		this.#pendingCallbacks.add(callback);
 	}
 
 	/**

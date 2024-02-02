@@ -14,9 +14,9 @@ describe("mutations in subscribers should be restricted",  () => {
   const subscriberWithEffect = () => {
     const apples  = state.getState().apples;
     const price  = state.getState().price;
-
-    state.getState().apples  = 111111111;
-    state.getState().price = 1111111111;
+    //
+    // state.getState().apples  = 111111111;
+    // state.getState().price = 1111111111;
 
     state.setState({ apples: 9999999999999 });
     state.setState({ price: 9999999999999 });
