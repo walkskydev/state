@@ -2,10 +2,13 @@ import State from '../index.js';
 
 
 // todo: implement global subscribe function
+/**
+ * @type {(listener: () => void) => () => void}
+ */
 export let subscribe;
 
 /**
- * @template T
+ * @template {object} T
  * @param {T} value
  * @returns {[() => T, (newValue: Partial<T>) => void]} Setter
  */

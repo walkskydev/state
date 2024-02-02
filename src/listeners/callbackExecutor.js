@@ -1,4 +1,9 @@
 /**
+ * @typedef {() => void} callback
+ */
+
+
+/**
  * Represents an executor for callback events.
  */
 class CallbackExecutor {
@@ -6,7 +11,7 @@ class CallbackExecutor {
 	 * The currently executing callback function.
 	 * Stores `null` if no function is being executed
 	 *
-	 * @property {Function | null} activeCallback
+	 * @type {callback | null} activeCallback
 	 */
 	activeCallback = null;
 
@@ -20,7 +25,7 @@ class CallbackExecutor {
 	 * Adds given callback to pendingCallbacks
 	 * or directly executes it based on isBatchUpdateMode
 	 *
-	 * @param {function} callback - Callback to be added to pending or executed directly
+	 * @param {callback} callback - Callback to be added to pending or executed directly
 	 */
 	pushToPending(callback) {
 		if (this.isBatchUpdateMode) {
@@ -33,7 +38,7 @@ class CallbackExecutor {
 	/**
 	 * A private setter function to update the executing function of activeCallback.
 	 *
-	 * @param {Function} fn - New function to be executed by activeCallback
+	 * @param {callback | null} fn - New function to be executed by activeCallback
 	 */
 	#setActiveCallback(fn) {
 		this.activeCallback = fn;
@@ -44,7 +49,7 @@ class CallbackExecutor {
 	 * It stores the callback in activeCallback, executes it,
 	 * and then cleans activeCallback (sets it to null)
 	 *
-	 * @param {function} callback - The function to be executed
+	 * @param {callback} callback - The function to be executed
 	 * @return {void}
 	 */
 	execute(callback) {
@@ -57,7 +62,7 @@ class CallbackExecutor {
 	 * A private function to execute all pending callback functions.
 	 */
 	#executeQueue() {
-		for (const callback of this.#pendingCallbacks) callback();
+		for (const callback of this.#pendingCallbacks) this.execute(callback);
 	}
 
 	/**
