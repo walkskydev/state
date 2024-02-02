@@ -1,29 +1,28 @@
-import listenerExecutor from "./listenerExecutor.js";
-import StatesRegister from "./listeners/StatesRegister.js";
+import callbackExecutor from "./listeners/callbackExecutor.js";
 
 /**
  * @typedef {Object} HandlerParams
  * @property {object} target - Original object that actions are performed upon.
  * @property {string|symbol} property - The property key which is being set or accessed.
  * @property {object} [state] - Optional state object.
- * @property {StatesRegister} statesRegister - StatesRegister instance for keeping track of state changes.
+ * @property {ListenersRegister} statesRegister - ListenersRegister instance for keeping track of state changes.
  * @property {unknown} [value] - Optional new value being assigned to the property.
  */
 
 /**
  * Attempts to set a new property value, then triggers property listeners. If performing a bulkUpdate, listeners will be queued and executed later.
- * @param {HandlerParams} params - An object containing parameters needed for property setting and listener execution.
+ * @param {HandlerParams} params - An object containing parameters needed for property setting and activeCallback execution.
  * @return {boolean} Reflects the result (success or failure) of the property setting operation.
  */
 const createSetTrap = ({ target, property, value, state, statesRegister }) => {
 	const statePropertiesMap = statesRegister.getStatePropertiesMap(state);
 
-	if (listenerExecutor.isCurrentlyExecuting) {
+	if (callbackExecutor.activeCallback) {
 		console.warn(
-			`A callback function is currently executing at this store. Setting property '${property}' is not allowed until the current execution finishes.`,
+			`A callback function is currently executing at this store. Setting property '${property}' is not allowed.`,
 		);
 
-		statesRegister.unsubscribe(listenerExecutor.listener, state);
+		statesRegister.unsubscribe(callbackExecutor.activeCallback, state);
 
 		return true;
 	}
@@ -31,14 +30,8 @@ const createSetTrap = ({ target, property, value, state, statesRegister }) => {
 	const result = Reflect.set(target, property, value);
 
 	if (statePropertiesMap.has(property)) {
-		if (statesRegister.isBulkUpdate) {
-			for (const listener of statePropertiesMap.get(property)) {
-				statesRegister.listenersQueue.add(listener);
-			}
-		} else {
-			for (const listener of statePropertiesMap.get(property)) {
-				listenerExecutor.execute(listener);
-			}
+		for (const listener of statePropertiesMap.get(property)) {
+			callbackExecutor.pushToPending(listener);
 		}
 	}
 	return result;
@@ -46,7 +39,7 @@ const createSetTrap = ({ target, property, value, state, statesRegister }) => {
 
 /**
  * Get handler retrieves a property from the target, ties the property to the state, and
- * If a currentListener is present, it signifies that this listener needs to be added to the property listeners.
+ * If a currentListener is present, it signifies that this activeCallback needs to be added to the property listeners.
  *
  * @param {HandlerParams} params - The parameters required for the get operation.
  * @return {unknown} The value of the property being accessed.
@@ -55,14 +48,14 @@ const createGetTrap = ({ target, property, state, statesRegister }) => {
 	const statePropertiesMap = statesRegister.getStatePropertiesMap(state);
 
 	if (!statePropertiesMap.has(property)) {
-		statePropertiesMap.set(property, StatesRegister.createListenersSet());
+		statePropertiesMap.set(property, new Set());
 	}
 
 	const propertyListeners = statePropertiesMap.get(property);
 
-	if (statesRegister.currentListener) {
-		if (!propertyListeners.has(statesRegister.currentListener)) {
-			propertyListeners.add(statesRegister.currentListener);
+	if (callbackExecutor.activeCallback) {
+		if (!propertyListeners.has(callbackExecutor.activeCallback)) {
+			propertyListeners.add(callbackExecutor.activeCallback);
 		}
 	}
 
@@ -70,9 +63,9 @@ const createGetTrap = ({ target, property, state, statesRegister }) => {
 };
 
 /**
- * Constructs a proxy handler for a state object with prescribed set and get actions that interact with the StatesRegister.
+ * Constructs a proxy handler for a state object with prescribed set and get actions that interact with the ListenersRegister.
  * @param {object} state - The state object to be handled.
- * @param {StatesRegister} statesRegister - The StatesRegister handling the state object.
+ * @param {ListenersRegister} statesRegister - The ListenersRegister handling the state object.
  * @return {ProxyHandler<object>} The generated proxy handler object.
  */
 const createProxyHandler = (state, statesRegister) => {
@@ -85,11 +78,11 @@ const createProxyHandler = (state, statesRegister) => {
 };
 
 /**
- * Generates a Proxy for a state instance and raw object, enforcing set and get rules defined by the StatesRegister.h
+ * Generates a Proxy for a state instance and raw object, enforcing set and get rules defined by the ListenersRegister.h
  *
  * @param {object} rawObj - The raw (unproxied) object.
  * @param {object} stateInstance - The instance of the state that the proxy represents.
- * @param {StatesRegister} statesRegister - The StatesRegister instance managing state instances.
+ * @param {ListenersRegister} statesRegister - The ListenersRegister instance managing state instances.
  * @return {object} The new Proxy object.
  */
 export function createProxy(rawObj, stateInstance, statesRegister) {
