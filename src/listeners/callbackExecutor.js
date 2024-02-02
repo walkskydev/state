@@ -59,6 +59,7 @@ class CallbackExecutor {
 	 */
 	#executeQueue() {
 		for (const callback of this.#pendingCallbacks) this.execute(callback);
+		this.#pendingCallbacks.clear();
 	}
 
 	/**
@@ -66,19 +67,48 @@ class CallbackExecutor {
 	 * It executes a function, the queue of pending callbacks
 	 * and then cleans up before exiting the batch update mode.
 	 *
-	 * @param {function} setter - The function to be executed
+	 * @param {callback} setter - The function to be executed
 	 */
-	runBatchUpdate(setter) {
+	runUpdate(setter) {
+		// execute all pending callbacks
+		 if (!this.isBatchUpdateMode) {
+			 setter();
+
+			 this.#executeQueue();
+			 this.#pendingCallbacks.clear();
+		 } else {
+			 this.#settersQueue.add(setter);
+		 }
+	}
+
+	/**
+	 * A queue for storing setter functions.
+	 * @type {Set<callback>}
+	 */
+	#settersQueue = new Set();
+
+	#executeSettersQueue() {
+		for (const setter of this.#settersQueue) {
+      setter();
+    }
+    this.#settersQueue.clear();
+	}
+
+
+	/**
+	 * Multiple states update
+	 * @param {callback[]} settersArray
+	 */
+	runBatchUpdate(settersArray) {
 		this.isBatchUpdateMode = true;
 
-		// execute the function provided
-		setter();
+		for (const setter of settersArray) {
+			this.runUpdate(setter);
+		}
 
-		// execute all pending callbacks
 		this.#executeQueue();
+		this.#executeSettersQueue();
 
-		// cleanup
-		this.#pendingCallbacks.clear();
 		this.isBatchUpdateMode = false;
 	}
 }

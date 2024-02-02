@@ -39,7 +39,7 @@ class State {
 	 * @param {Partial<T>} newValue
 	 */
 	setState = (newValue) => {
-		listenerExecutor.runBatchUpdate(() => {
+		listenerExecutor.runUpdate(() => {
 			Object.assign(this.#state, newValue);
 		});
 	};
