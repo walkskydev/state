@@ -3,7 +3,7 @@ import { useSyncExternalStore } from 'react';
 import State from '../../src/index.js'
 
 /**
- * @template T
+ * @template {object} T
  * @param {T} value
  * @returns {[T, (newValue: Partial<T>) => void]} Setter
  */

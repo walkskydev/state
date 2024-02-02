@@ -6,14 +6,13 @@ import * as utils from "./utils.js";
 /**
  * State
  * @class State
- * @template T
+ * @template {object} T
  * @property {Function} getState Returns the state
  * @property {function(Partial<T>):void} setState Sets the new state
  * @property {function(Function):Function} subscribe Subscribes a listener to changes in state
  */
 class State {
 	/**
-
 	 * @constructor
 	 * @param {T} value - The initial value for the instance.
 	 * @throws {Error} Throws an error if the value is not an object.
