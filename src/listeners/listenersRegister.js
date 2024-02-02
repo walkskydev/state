@@ -49,7 +49,7 @@ class ListenersRegister {
      * Unsubscribes a given activeCallback callback from all listeners across the state.
      *
      * @param {ListenerFn} cb - The callback function to unsubscribe.
-     * @param {State} state - The state object.
+     * @param {object} state - The state object.
      */
     unsubscribe(cb, state) {
         const props = this.getStatePropertiesMap(state);

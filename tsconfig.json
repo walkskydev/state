@@ -1,14 +1,14 @@
 {
-  "include": ["./src/index.js"],
+  "include": ["./src/**/*.js"],
   "exclude": ["node_modules",
-    "./src/__tests__"
+    "./__tests__"
   ],
   "compilerOptions": {
     "allowJs": true,
     "declaration": true,
-    "emitDeclarationOnly": true,
-    "outDir": "dist",
-    "declarationMap": true,
+    "checkJs": true,
+    "outDir": "./dist",
+    "sourceMap": true,
     "target": "esnext",
     "module": "esnext"
   }

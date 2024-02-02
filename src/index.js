@@ -4,7 +4,8 @@ import { createProxy } from "./proxy.js";
 import * as utils from "./utils.js";
 
 /**
- * State instance
+ * State
+ * @class State
  * @template T
  * @property {Function} getState Returns the state
  * @property {function(Partial<T>):void} setState Sets the new state
@@ -47,9 +48,8 @@ class State {
 	/**
 	 * Subscribe a listener to changes in state.
 	 *
-	 * @param {function} listener - The listener function to be called when a change occurs.
-	 *
-	 * @return {function} An unsubscribe function to remove the listener.
+	 * @param {() => void} listener - The listener function to be called when a change occurs.
+	 * @return {() => void} An unsubscribe function to remove the listener.
 	 */
 	subscribe = (listener) => {
 		listenerExecutor.execute(listener);

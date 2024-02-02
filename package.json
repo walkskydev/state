@@ -11,7 +11,7 @@
   "types": "index.d.ts",
   "type": "module",
   "scripts": {
-    "build": "tsc && cp -r ./src/* ./dist/",
+    "build": "tsc",
     "prepare": "husky",
     "lint": "biome check ./src/*.js --apply",
     "test": "mocha --recursive ./__tests__"
