@@ -8,7 +8,7 @@ import * as utils from "./utils.js";
  * @template T
  * @property {Function} getState Returns the state
  * @property {function(Partial<T>):void} setState Sets the new state
- * @property {function(Function):Function} subscribe Subscribes a activeCallback to changes in state
+ * @property {function(Function):Function} subscribe Subscribes a listener to changes in state
  */
 class State {
 	/**
@@ -45,11 +45,11 @@ class State {
 	};
 
 	/**
-	 * Subscribe a activeCallback to changes in state.
+	 * Subscribe a listener to changes in state.
 	 *
-	 * @param {function} listener - The activeCallback function to be called when a change occurs.
+	 * @param {function} listener - The listener function to be called when a change occurs.
 	 *
-	 * @return {function} An unsubscribe function to remove the activeCallback.
+	 * @return {function} An unsubscribe function to remove the listener.
 	 */
 	subscribe = (listener) => {
 		listenerExecutor.execute(listener);
