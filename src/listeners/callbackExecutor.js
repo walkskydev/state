@@ -42,12 +42,13 @@ class CallbackExecutor {
 	 * Executes the given listener. And set public property 'processingListener' to help understand which listeners is executing now
 	 *
 	 * @param {callback} callback - The function to be executed
-	 * @return {void}
+	 * @return {*}
 	 */
 	executeListener(callback) {
 		this.processingListener = callback;
-		callback();
+		const result = callback();
 		this.processingListener = null;
+		return result;
 	}
 
 	/**
