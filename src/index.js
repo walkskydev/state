@@ -19,12 +19,14 @@ class State {
 	 */
 	constructor(value) {
 		if (utils.isObject(value)) {
-			this.#state = createProxy(value, this, listenersRegister);
+			const copy = { ...value };
+			this.#state = createProxy(copy, this, listenersRegister);
 		} else {
 			throw new Error("This type is not supported yet!");
 		}
 	}
 
+	#copy;
 	#state;
 
 	/**
