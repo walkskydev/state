@@ -3,46 +3,63 @@ import listenersRegister from "./listeners/listenersRegister.js";
 import { createProxy } from "./proxy.js";
 import * as utils from "./utils.js";
 
-/**
- * State
- * @class State
- * @template {object} T
- * @property {Function} getState Returns the state
- * @property {function(Partial<T>):void} setState Sets the new state
- * @property {function(Function):Function} subscribe Subscribes a listener to changes in state
- */
+/** @template {object} T */
 class State {
-	/**
-	 * @constructor
-	 * @param {T} value - The initial value for the instance.
-	 * @throws {Error} Throws an error if the value is not an object.
-	 */
+	/**@type T */
+	#target;
+	/**@type T */
+	#state;
+
+	/** @param {T} value */
 	constructor(value) {
 		if (utils.isObject(value)) {
-			this.#state = createProxy(value, this, listenersRegister);
+			this.#target = { ...value };
+			this.#state = createProxy(this.#target, this, listenersRegister);
 		} else {
 			throw new Error("This type is not supported yet!");
 		}
 	}
 
-	#state;
-
 	/**
-	 * @returns {T} The state.
+	 * Getter for state
+	 *  @returns {T}
 	 */
 	getState = () => {
 		return this.#state;
 	};
 
 	/**
-	 * Sets the state of the object.
-	 * @param {Partial<T>} newValue
+	 * Method to update state
+	 *  @param {Partial<T>} newValue
 	 */
 	setState = (newValue) => {
-		listenerExecutor.runBatchUpdate(() => {
-			Object.assign(this.#state, newValue);
+		if (listenerExecutor.processingListener) {
+			console.warn("'SetState' method is not allowed in subscribers.");
+			listenersRegister.unsubscribe(listenerExecutor.processingListener, this);
+			return;
+		}
+
+		const statePropertiesMap = listenersRegister.getStatePropertiesMap(this);
+
+		listenerExecutor.runUpdate(() => {
+			for (const key in newValue) {
+				Reflect.set(this.#target, key, newValue[key]);
+
+				if (statePropertiesMap.has(key)) {
+					this.#notifyLIsteners(key);
+				}
+			}
 		});
 	};
+
+	/** @param {string} key */
+	#notifyLIsteners(key) {
+		const statePropertiesMap = listenersRegister.getStatePropertiesMap(this);
+
+		for (const listener of statePropertiesMap.get(key)) {
+			listenerExecutor.pushToPending(listener);
+		}
+	}
 
 	/**
 	 * Subscribe a listener to changes in state.
@@ -51,7 +68,7 @@ class State {
 	 * @return {() => void} An unsubscribe function to remove the listener.
 	 */
 	subscribe = (listener) => {
-		listenerExecutor.execute(listener);
+		listenerExecutor.executeListener(listener);
 
 		return () => {
 			listenersRegister.unsubscribe(listener, this);
