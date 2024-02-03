@@ -3,34 +3,39 @@ import listenersRegister from "./listeners/listenersRegister.js";
 import { createProxy } from "./proxy.js";
 import * as utils from "./utils.js";
 
-/**
- * State
- * @class State
- * @property {function(Partial<Data>):void} setState Sets the new state
- * @property {() => () => void} subscribe Subscribes a listener to changes in state
- */
+/** @template {object} T */
 class State {
-	#copy;
+	/**@type T */
+	#target;
+	/**@type T */
 	#state;
 
+	/** @param {T} value */
 	constructor(value) {
 		if (utils.isObject(value)) {
-			const copy = { ...value };
-			this.#copy = copy;
-			this.#state = createProxy(copy, this, listenersRegister);
+			this.#target = { ...value };
+			this.#state = createProxy(this.#target, this, listenersRegister);
 		} else {
 			throw new Error("This type is not supported yet!");
 		}
 	}
 
+	/**
+	 * Getter for state
+	 *  @returns {T}
+	 */
 	getState = () => {
 		return this.#state;
 	};
 
+	/**
+	 * Method to update state
+	 *  @param {Partial<T>} newValue
+	 */
 	setState = (newValue) => {
-		if (listenerExecutor.activeCallback) {
+		if (listenerExecutor.processingListener) {
 			console.warn("'SetState' method is not allowed in subscribers.");
-			listenersRegister.unsubscribe(listenerExecutor.activeCallback, this);
+			listenersRegister.unsubscribe(listenerExecutor.processingListener, this);
 			return;
 		}
 
@@ -38,7 +43,7 @@ class State {
 
 		listenerExecutor.runUpdate(() => {
 			for (const key in newValue) {
-				Reflect.set(this.#copy, key, newValue[key]);
+				Reflect.set(this.#target, key, newValue[key]);
 
 				if (statePropertiesMap.has(key)) {
 					this.#notifyLIsteners(key);
@@ -47,6 +52,7 @@ class State {
 		});
 	};
 
+	/** @param {string} key */
 	#notifyLIsteners(key) {
 		const statePropertiesMap = listenersRegister.getStatePropertiesMap(this);
 
@@ -62,7 +68,7 @@ class State {
 	 * @return {() => void} An unsubscribe function to remove the listener.
 	 */
 	subscribe = (listener) => {
-		listenerExecutor.execute(listener);
+		listenerExecutor.executeListener(listener);
 
 		return () => {
 			listenersRegister.unsubscribe(listener, this);

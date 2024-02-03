@@ -2,16 +2,13 @@
 /**
  * A function with no parameters and no return value.
  * @callback ListenerFn
-*/
-/**
+ *
  * Set with listeners
  * @typedef {Set<ListenerFn>} ListenersSet
-*/
-/**
+ *
  * PropertiesMap type represents a Map that pairs property keys to ListenersSet values.
  * @typedef {Map<string | symbol, ListenersSet>} PropertiesMap
- */
-/**
+ *
  * WeakMap with all states instances
  * @typedef {WeakMap<object, PropertiesMap>}  GlobalListenersMap
  */
@@ -23,13 +20,11 @@
  * This class manages the listeners for state changes.
  */
 class ListenersRegister {
-
     /**
      * Global Map storing all states instances.
      * @type {GlobalListenersMap}
      */
     statesMap = new WeakMap();
-
     /**
      * Fetches the PropertiesMap associated with a state.
      *
@@ -43,10 +38,8 @@ class ListenersRegister {
         this.statesMap.set(state, new Map());
         return this.statesMap.get(state);
     }
-
-
     /**
-     * Unsubscribes a given activeCallback callback from all listeners across the state.
+     * Unsubscribes a given listener callback from all listeners across the state.
      *
      * @param {ListenerFn} cb - The callback function to unsubscribe.
      * @param {object} state - The state object.

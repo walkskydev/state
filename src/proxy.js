@@ -17,27 +17,6 @@ export function createProxy(originalTarget, state, statesRegister) {
 	return new Proxy(originalTarget, {
 		set: () => {
 			return true;
-			// const statePropertiesMap = statesRegister.getStatePropertiesMap(state);
-			//
-			// if (callbackExecutor.activeCallback) {
-			// 	console.warn(
-			// 		// @ts-ignore
-			// 		`A callback function is currently executing at this store. Setting property '${property}' is not allowed.`,
-			// 	);
-			//
-			// 	statesRegister.unsubscribe(callbackExecutor.activeCallback, state);
-			//
-			// 	return true;
-			// }
-			//
-			// const result = Reflect.set(target, property, value);
-			//
-			// if (statePropertiesMap.has(property)) {
-			// 	for (const listener of statePropertiesMap.get(property)) {
-			// 		callbackExecutor.pushToPending(listener);
-			// 	}
-			// }
-			// return result;
 		},
 
 		get: (target, property) => {
@@ -49,13 +28,17 @@ export function createProxy(originalTarget, state, statesRegister) {
 
 			const propertyListeners = statePropertiesMap.get(property);
 
-			if (callbackExecutor.activeCallback) {
-				if (!propertyListeners.has(callbackExecutor.activeCallback)) {
-					propertyListeners.add(callbackExecutor.activeCallback);
+			if (callbackExecutor.processingListener) {
+				if (!propertyListeners.has(callbackExecutor.processingListener)) {
+					propertyListeners.add(callbackExecutor.processingListener);
 				}
 			}
 
 			return Reflect.get(originalTarget, property);
+		},
+
+		deleteProperty() {
+			return true;
 		},
 	});
 }
