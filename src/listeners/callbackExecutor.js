@@ -42,12 +42,13 @@ class CallbackExecutor {
 	 * Executes the given listener. And set public property 'processingListener' to help understand which listeners is executing now
 	 *
 	 * @param {callback} callback - The function to be executed
-	 * @return {void}
+	 * @return {*}
 	 */
-	executeListener(callback) {
+	executeListener = (callback) => {
 		this.processingListener = callback;
-		callback();
+		const result = callback();
 		this.processingListener = null;
+		return result;
 	}
 
 	/**
@@ -62,7 +63,7 @@ class CallbackExecutor {
 	 * Execute setter or add it to 'settersQueue' bases on batch mode
 	 * @param {callback} setter - The function to be executed
 	 */
-	runUpdate(setter) {
+	runUpdate  = (setter) => {
 		// execute all pending callbacks
 		 if (!this.#isBatchUpdateMode) {
 			 setter();
@@ -88,15 +89,13 @@ class CallbackExecutor {
     /**
      * Executes multiple updates at once in batch update mode.
      *
-     * @param {callback[]} settersArray - An array of setter functions to be executed
+     * @param {callback} action - An array of setter functions to be executed
      */
-    batch(settersArray) {
+    batch(action) {
         this.#isBatchUpdateMode = true;
-        for (const setter of settersArray) {
-            this.runUpdate(setter);
-        }
-        this.#executeListenersQueue();
+				action()
         this.#executeSettersQueue();
+        this.#executeListenersQueue();
         this.#isBatchUpdateMode = false;
     }
 }

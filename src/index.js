@@ -1,7 +1,11 @@
-import listenerExecutor from "./listeners/callbackExecutor.js";
-import listenersRegister from "./listeners/listenersRegister.js";
+import _listenerExecutor from "./listeners/callbackExecutor.js";
+import _listenersRegister from "./listeners/listenersRegister.js";
 import { createProxy } from "./proxy.js";
 import * as utils from "./utils.js";
+
+/**
+ * @typedef {() => void} callback
+ */
 
 /** @template {object} T */
 class State {
@@ -14,7 +18,7 @@ class State {
 	constructor(value) {
 		if (utils.isObject(value)) {
 			this.#target = { ...value };
-			this.#state = createProxy(this.#target, this, listenersRegister);
+			this.#state = createProxy(this.#target, this, _listenersRegister);
 		} else {
 			throw new Error("This type is not supported yet!");
 		}
@@ -33,15 +37,18 @@ class State {
 	 *  @param {Partial<T>} newValue
 	 */
 	setState = (newValue) => {
-		if (listenerExecutor.processingListener) {
+		if (_listenerExecutor.processingListener) {
 			console.warn("'SetState' method is not allowed in subscribers.");
-			listenersRegister.unsubscribe(listenerExecutor.processingListener, this);
+			_listenersRegister.unsubscribe(
+				_listenerExecutor.processingListener,
+				this,
+			);
 			return;
 		}
 
-		const statePropertiesMap = listenersRegister.getStatePropertiesMap(this);
+		const statePropertiesMap = _listenersRegister.getStatePropertiesMap(this);
 
-		listenerExecutor.runUpdate(() => {
+		_listenerExecutor.runUpdate(() => {
 			for (const key in newValue) {
 				Reflect.set(this.#target, key, newValue[key]);
 
@@ -54,10 +61,10 @@ class State {
 
 	/** @param {string} key */
 	#notifyLIsteners(key) {
-		const statePropertiesMap = listenersRegister.getStatePropertiesMap(this);
+		const statePropertiesMap = _listenersRegister.getStatePropertiesMap(this);
 
 		for (const listener of statePropertiesMap.get(key)) {
-			listenerExecutor.pushToPending(listener);
+			_listenerExecutor.pushToPending(listener);
 		}
 	}
 
@@ -68,12 +75,30 @@ class State {
 	 * @return {() => void} An unsubscribe function to remove the listener.
 	 */
 	subscribe = (listener) => {
-		listenerExecutor.executeListener(listener);
+		_listenerExecutor.executeListener(listener);
 
 		return () => {
-			listenersRegister.unsubscribe(listener, this);
+			_listenersRegister.unsubscribe(listener, this);
 		};
 	};
+}
+
+/**
+ * Observes a component and executes the component with the provided arguments when triggered.
+ * @param {(...args: any[]) => any} component - The component to observe.
+ * @return {(...args: any[]) => any} The observer function that takes arguments and triggers the component.
+ */
+export function observe(component) {
+	return (args) => {
+		return _listenerExecutor.executeListener(() => component(args));
+	};
+}
+
+/**
+ * @param {callback} action
+ */
+export function batch(action) {
+	_listenerExecutor.batch(action);
 }
 
 export default State;
