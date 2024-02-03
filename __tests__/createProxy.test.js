@@ -1,5 +1,5 @@
 import {assert} from 'chai';
-import { createProxy } from '../src/proxy.js';
+import { createProxy } from '../src/state/proxy.js';
 import {it} from 'mocha';
 
 describe('createProxy function', () => {
