@@ -95,10 +95,10 @@ export function observe(component) {
 }
 
 /**
- * @param {Array<callback>} setters
+ * @param {callback} action
  */
-export function batch(setters) {
-	_listenerExecutor.batch(setters);
+export function batch(action) {
+	_listenerExecutor.batch(action);
 }
 
 export default State;

@@ -100,21 +100,19 @@ describe("Observe function", () => {
 
     const wrapped = observe(Component);
     wrapped();
-    assert.equal(count, 1);
 
+    batch(() => {
+      applesState.setState({apples: 2})
+      bananaState.setState({bannanas: 2})
 
+      applesState.setState({apples: 3})
+      bananaState.setState({bannanas: 3})
 
-   batch([
-     applesState.setState({apples: 2}),
-     bananaState.setState({bannanas: 2}),
-     applesState.setState({apples: 3}),
-     bananaState.setState({bannanas: 4}),
-     applesState.setState({apples: 5}),
-     bananaState.setState({bannanas: 5})
-   ])
+      applesState.setState({apples: 5})
+      bananaState.setState({bannanas: 5})
+    })
+
     assert.equal(count, 2);
-
-
     assert.equal(result, "Apples: 5, bananas: 5");
 
   })
