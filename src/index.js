@@ -6,45 +6,54 @@ import * as utils from "./utils.js";
 /**
  * State
  * @class State
- * @template {object} T
- * @property {Function} getState Returns the state
- * @property {function(Partial<T>):void} setState Sets the new state
- * @property {function(Function):Function} subscribe Subscribes a listener to changes in state
+ * @property {function(Partial<Data>):void} setState Sets the new state
+ * @property {() => () => void} subscribe Subscribes a listener to changes in state
  */
 class State {
-	/**
-	 * @constructor
-	 * @param {T} value - The initial value for the instance.
-	 * @throws {Error} Throws an error if the value is not an object.
-	 */
+	#copy;
+	#state;
+
 	constructor(value) {
 		if (utils.isObject(value)) {
 			const copy = { ...value };
+			this.#copy = copy;
 			this.#state = createProxy(copy, this, listenersRegister);
 		} else {
 			throw new Error("This type is not supported yet!");
 		}
 	}
 
-	#copy;
-	#state;
-
-	/**
-	 * @returns {T} The state.
-	 */
 	getState = () => {
 		return this.#state;
 	};
 
-	/**
-	 * Sets the state of the object.
-	 * @param {Partial<T>} newValue
-	 */
 	setState = (newValue) => {
+		if (listenerExecutor.activeCallback) {
+			console.warn("'SetState' method is not allowed in subscribers.");
+			listenersRegister.unsubscribe(listenerExecutor.activeCallback, this);
+			return;
+		}
+
+		const statePropertiesMap = listenersRegister.getStatePropertiesMap(this);
+
 		listenerExecutor.runUpdate(() => {
-			Object.assign(this.#state, newValue);
+			for (const key in newValue) {
+				Reflect.set(this.#copy, key, newValue[key]);
+
+				if (statePropertiesMap.has(key)) {
+					this.#notifyLIsteners(key);
+				}
+			}
 		});
 	};
+
+	#notifyLIsteners(key) {
+		const statePropertiesMap = listenersRegister.getStatePropertiesMap(this);
+
+		for (const listener of statePropertiesMap.get(key)) {
+			listenerExecutor.pushToPending(listener);
+		}
+	}
 
 	/**
 	 * Subscribe a listener to changes in state.
