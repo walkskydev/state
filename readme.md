@@ -1,93 +1,92 @@
 # State
 
 ## Overview
-Efficient, framework agnostic state manager, and highly adaptable state manager optimized for robust functionality.
+Performance-oriented and highly adaptable state manager.
 
-### Automatic memoized/computed
-You don't need to care about dependencies in your components or functions.
-Your callback will be called only if any of the used values was changed.
+## Why State
+1. State is a pragmatic solution which aims to be useful in any JS application: NodeJS, Web Components, WASM, React, Vue, etc.
+2. You don't need to worry about rendering optimization as the state uses automatic dependencies.
+3. From the simplest scenarios to the most complex, all you need to know are a few functions:
+   * `createState`+`get/set` - to create a state and manipulate the values
+   * `subscribe`/`observe` - for functions/ for components to watch for updates
+   * `batch` - to update multiple states in one operation
 
-```tsx
-// userState.ts
-export const [user, setUser] = createState({name: '', email: ''});
-// That`s re-render your component once
-setUser({name: 'John', email: 'example@john.com'})
-
-// MyComponent.tsx
-const MyComponent = () => (
-    <ul>
-        <li>Your name is "{user().name}"</li>
-        <li>Your email is <code>{user().email}</code></li>
-    </ul>
-);
-
-const computed = () => 
-    `Your names is: ${user().name} and email is: ${user().email}`
-
-// No matter one or two valuess will be changed - your component  will re-render once
-const UserInfo = () => (
-    <p>{computed()}</p>
-);
-
-```
-
-### 
-
-
-### Signals
-useFruitsState.ts
-
+## Getting started
+If you need just a 'classic' state, you can create an instance of State.
+### State class
 ```typescript
-import createSignal from '@walksky/state/signal'
+import State from 'walksky/state'
 
-// initialize the global state
-const [fruitsState, setState] = createSignal({
-    apples: 1,
-    oranges: 3
-}); 
-
-// Define some global actions
-export const increaseApples = () => {
-    // you can use getter for values
-    const { apples } = fruitsState;
-    setState({apples: apples + 1});
-};
-// 
-export const increaseOranges = () => {
-    // or pass the function
-    setState(({oranges}) => {
-        return  {oranges: oranges + 1}
-    });
-};
-
-export default fruitsState;
+const state = new State({apples: 0});
+const unsubscribe = state.subscribe(() => console.log(state.getState().apples));
+state.setState({apples: 2});
 ```
-MyComponent.tsx
+### createState()
+#### Add computed values
+ A more useful function is `createState` which returns an array with two values **[getters, setters]**: 
+```typescript
+import { createState } from 'walksky/state'
+
+const [state, setState] = createState((get) => ({
+   apples: 1,
+   price: 100,
+   count: (quantity) => quantity * get().price,
+   totalPrice: () => get().price * get().apples,
+}));
+```
+#### Add actions
+As well, you can define some actions and store them in **setters** 
+```typescript
+const [state, actions] = createState((getState) => ({
+   apples: 1,
+   price: 100,
+   count: (quantity) => quantity * getState().price,
+   totalPrice: () => getState().price * getState().apples,
+}),
+  (set, get) => ({
+     increaseApples: () => {set({apples: get().apples + 1})}
+    })
+);
+```
 ```tsx
-import useFruitState, {increaseApples, increaseOranges} from './useFruitsState.ts'
+const MyComponent = () => (<div>
+   Apples: {state.apples()}
+   Total price: {state.totalPrice()}
+   <button onClick={action.increaseApples}/>
+</div>)
+```
+
+### observe()
+Make it observable
+```tsx
+observe(MyComponent)
+```
+if you are using Rect you could just use this hook:
+```tsx
+import useHook from 'walksky/state/hook'
+
+const useApplesState = useHook({apples: 1});
 
 const MyComponent = () => {
-    const fruits = useFruitState();
-
-    useEffect(() => {
-        setTimeout(() => {
-            // mutations is allowed by default (optional)
-            fruits.apples = fruits.apples + 1;
-        }, 1000)
-    }, []);
-
-  return (
-      <div>
-        <h1>Apples: {fruits.apples}</h1>
-        <h1>Oranges: {fruits.oranges}</h1>
-        <button onClick={increaseApples}>Increase Apples</button>
-        <button onClick={increaseOranges}>Increase Oranges</button>
-      </div>
-  );
-};
+    const [apples, setApples] = useApplesState();
+// ...
 ```
+### batch()
+In cases when you need to update values from multiple stores, you
+can use `batch` function to optimize components re-render. After wrapping
+your setters, component will be re-rendered just once.
+```tsx
+batch(() => {
+    appleState.setState({apples: 10});
+    bannanaState.setState({bannanas: 20});
+})
+```
+
+
+
+
 ### Web components
-All you need is to subscribe in `connectedCallback` in your lifecycle callbacks
+All you need to do is subscribe in `connectedCallback` in your lifecycle callbacks
 ```javascript
  // Create a class for the element
 class MyCustomElement extends HTMLElement {
@@ -104,48 +103,15 @@ class MyCustomElement extends HTMLElement {
 customElements.define("my-custom-element", MyCustomElement);
 
 ```
-### React
-```tsx
-import useHook from 'walksky/hook'
 
-const useApplesState = useHook({apples: 1});
-
-const MyComponent = () => {
-    const [apples, setApples] = useApplesState();
-    
-    const increaseApples = () => {
-        setApples({apples: apples + 1});
-    }
-    
-    // mutation is allowed by default
-    const decreaseApples = () => {
-        apples--;
-    }
-
-    return (
-        <div>
-            <h1>Apples: {fruits.apples}</h1>
-            <button onClick={increaseApples}>Increase Apples</button>
-            <button onClick={increaseApples}>Increase Apples</button>
-        </div>
-    );
-};
+### Webassembly
+...
 
 
-```
 
 ## Documentation
 :construction_worker: Under construction... 
 
-
-### getState()
-This method returns the current state.
-
-### subscribe()
-This method allows components to subscribe and listen for any changes happening to the state. On subscribe, it returns a function that can later be called to unsubscribe.
-
-### setState()
-This method sets the state.
 
 ## Todo
 
@@ -155,8 +121,8 @@ This method sets the state.
 - [x] cancel side effects from listeners
 - [x] generic type for State  
 - [ ] add benchmarks
-- [ ] support for primitives
-- [ ] mutable/immutable options
-- [ ] add readme
+- [ ] ?support for primitives
+- [ ] ?mutable/immutable options
 - [ ] add middlewares
 - [ ] persistence
+- [ ] devtools integrations

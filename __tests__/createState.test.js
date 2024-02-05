@@ -1,5 +1,5 @@
 import {assert} from 'chai'
-import {createState} from '../src/index.js'
+import createState from '../src/state/createState.js'
 
 
 function testGetter(getState) {
