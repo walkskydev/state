@@ -1,7 +1,7 @@
-import callbackExecutor from "./listeners/callbackExecutor.js";
+import callbackExecutor from "../listeners/callbackExecutor.js";
 
 /**
- * @typedef {import('./listeners/listenersRegister.js').default} ListenerRegister
+ * @typedef {import('../listeners/listenersRegister.js').default} ListenerRegister
  * @typedef {ListenerRegister} statesRegister - The listeners register instance.
  */
 
