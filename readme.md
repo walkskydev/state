@@ -1,29 +1,38 @@
 # State
+Performance-oriented and highly adaptable state manager for JS applications.
 
-## Overview
-Performance-oriented and highly adaptable state manager.
-
-## Why State
+## Motivation
 1. State is a pragmatic solution which aims to be useful in any JS application: NodeJS, Web Components, WASM, React, Vue, etc.
 2. You don't need to worry about rendering optimization as the state uses automatic dependencies.
 3. From the simplest scenarios to the most complex, all you need to know are a few functions:
    * `createState`+`get/set` - to create a state and manipulate the values
-   * `subscribe`/`observe` - for functions/ for components to watch for updates
+   * `subscribe`/`observe` - for functions/components to watch for updates
    * `batch` - to update multiple states in one operation
 
 ## Getting started
-If you need just a 'classic' state, you can create an instance of State.
+```shell
+npm i @walksky/state
+```
+
 ### State class
+If you need only a classic state, and you will care about where to store computed values and actions,
+you can create an instance of State.
 ```typescript
 import State from 'walksky/state'
 
 const state = new State({apples: 0});
-const unsubscribe = state.subscribe(() => console.log(state.getState().apples));
-state.setState({apples: 2});
+// create computed values
+const totalPrice = () => 100 * state.getState().apples; 
+// subcribe your callback 
+state.subscribe(() => console.log('Total price:', totalPrice()));
+// update the state
+state.setState({apples: 2}); // 'Total price: 200'
 ```
 ### createState()
-#### Add computed values
- A more useful function is `createState` which returns an array with two values **[getters, setters]**: 
+If you want to store your values, computed values, and setters/actions in one place,
+the function createState will be more useful for you.
+#### Computed values
+ `createState` returns an array with two values **[getters, setters]**: 
 ```typescript
 import { createState } from 'walksky/state'
 
@@ -34,8 +43,8 @@ const [state, setState] = createState((get) => ({
    totalPrice: () => get().price * get().apples,
 }));
 ```
-#### Add actions
-As well, you can define some actions and store them in **setters** 
+#### Actions
+As well, you can create some actions by passing second argument. 
 ```typescript
 const [state, actions] = createState((getState) => ({
    apples: 1,
@@ -43,9 +52,9 @@ const [state, actions] = createState((getState) => ({
    count: (quantity) => quantity * getState().price,
    totalPrice: () => getState().price * getState().apples,
 }),
-  (set, get) => ({
-     increaseApples: () => {set({apples: get().apples + 1})}
-    })
+(setState, getState) => ({
+   increaseApples: () => {setState({apples: getState().apples + 1})}
+ })
 );
 ```
 ```tsx
@@ -57,19 +66,20 @@ const MyComponent = () => (<div>
 ```
 
 ### observe()
-Make it observable
+To make your functional component reactive, wrap it with the observe function.
 ```tsx
 observe(MyComponent)
 ```
-if you are using Rect you could just use this hook:
+Or, if you are using React you could just use this hook:
 ```tsx
-import useHook from 'walksky/state/hook'
+import createHook from 'walksky/state/hook'
 
-const useApplesState = useHook({apples: 1});
+const useApplesState = createHook({apples: 1});
 
 const MyComponent = () => {
-    const [apples, setApples] = useApplesState();
+    const [getApples, setApples] = useApplesState();
 // ...
+}
 ```
 ### batch()
 In cases when you need to update values from multiple stores, you
@@ -105,6 +115,37 @@ customElements.define("my-custom-element", MyCustomElement);
 ```
 
 ### Webassembly
+If you write your business logic with Webassembly, all you need is
+write a bridge
+
+```rust
+ #[wasm_bindgen(method)]
+ pub fn execute(cart_item: JsCartItem) {
+     let new_cart = // result of hard business logic
+     self.js_state.set_state(new_cart);
+ }
+```
+```typescript
+import State from '@walksky/state'
+import { State as WasmState } from 'path_to_your_generated_wasm_typed_file';
+
+const state = new State({apples: 0});
+
+// just extend WASM class
+class WasmBridge extends WasmState {
+    getState = state.getState
+    setState = state.setState
+}
+
+// create instances of state and use case
+let stateInstance = new WasmBridge();
+let addToCart = new AddToCartUseCase(stateInstance);
+
+// sowhere in application
+let item = {product_id: 1, quantity: 1};
+addToCart.execute(item);
+```
+
 ...
 
 
