@@ -77,7 +77,7 @@ const MyComponent = () => {
 ```
 
 ### observe()
-If you  are using some components-based library, to make your functional component reactive, wrap it with the observe function.
+If you are using another UI library based on functional components, to make your component reactive, wrap it with the `observe` function.
 ```tsx
 const MyComponent = ({someProp}) => {
     return <div>
