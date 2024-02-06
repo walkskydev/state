@@ -16,10 +16,12 @@ State was designed as a pragmatic solution with important optimizations and conv
 npm i @walksky/state
 ```
 ### createState()
-`createState` is a function for storing and organizing values, computed values and setters. It returns an array with two values **[getters, setters]**.
+State provides a convenient way to organize values, computed values and setters. It returns an array with two values:
+**[getters, setters]** - a functions for getting and setting values.
+To get value from state you need to call a signal: `state.value()`;
 
 #### Computed values
-To create computed values, define a function that you can call anytime in your code.
+To create computed values, define a **getter** that you can call anytime in your code.
 ```typescript
 import { createState } from '@walksky/state'
 
