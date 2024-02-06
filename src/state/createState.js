@@ -36,5 +36,5 @@ export default function createState(getter, setter) {
   const gets = createGetProps(computeds, props, state);
   const sets = setter(state.setState, state.getState);
 
-  return [gets, sets];
+  return [gets, sets, state.subscribe];
 }

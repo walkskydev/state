@@ -19,11 +19,19 @@ npm i @walksky/state
 State provides a convenient way to organize values, computed values and setters. It returns an array with two values:
 **[getters, setters]** - a functions for getting and setting values.
 To get value from state you need to call a signal: `state.value()`;
+```tsx
+import { createState } from '@walksky/state'
 
+const [state, setState] = createState({
+  apples: 1,
+  price: 100,
+});
+
+const MyComponent = ({count}) => <div>Apples: {state.apples()}</div>
+```
 #### Computed values
 To create computed values, define a **getter** that you can call anytime in your code.
 ```typescript
-import { createState } from '@walksky/state'
 
 const [state, setState] = createState((getState) => ({
    apples: 1,
