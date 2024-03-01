@@ -1,7 +1,7 @@
 import {assert} from 'chai';
 
 
-import State, {observe, batch} from '../src/index.js'
+import State, {observe} from '../src/index.js'
 import {it} from 'mocha';
 
 
@@ -80,41 +80,6 @@ describe("Observe function", () => {
 
 
     assert.equal(result, "Apples: 10, bananas: 10");
-  })
-
-  it("", () => {
-    let count = 0;
-    let result;
-
-    // reset
-    applesState.setState({apples: 1})
-    bananaState.setState({bannanas: 1})
-
-    const Component = () => {
-      const apples = applesState.getState().apples;
-      const bananas = bananaState.getState().bannanas;
-
-      count++
-      result = `Apples: ${apples}, bananas: ${bananas}`;
-    }
-
-    const wrapped = observe(Component);
-    wrapped();
-
-    batch(() => {
-      applesState.setState({apples: 2})
-      bananaState.setState({bannanas: 2})
-
-      applesState.setState({apples: 3})
-      bananaState.setState({bannanas: 3})
-
-      applesState.setState({apples: 5})
-      bananaState.setState({bannanas: 5})
-    })
-
-    assert.equal(count, 2);
-    assert.equal(result, "Apples: 5, bananas: 5");
-
   })
 })
 

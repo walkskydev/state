@@ -9,7 +9,6 @@ State was designed as a pragmatic solution with important optimizations and conv
 * From the simplest scenarios to the most complex, all you need to know are a few functions:
    * `createState`+`geters/setters` - to create a state and manipulate the values
    * `observe`/`subscribe` - for functions/components to watch for updates
-   * `batch` - to update multiple states in one operation
 
 ## Getting started
 ```shell
@@ -61,15 +60,14 @@ const MyComponent = ({count}) => (<div>
 </div>)
 ```
 
-### batch()
-In cases when you need to update values from multiple stores, you
-can use `batch` function to optimize components re-render. After wrapping
-your setters, component will be re-rendered just once.
+### Batch update
+State is optimized for components re-render.
+In cases when you need to update values from multiple stores,
+your component will re-render just once.
+
 ```tsx
-batch(() => {
-    appleState.setState({apples: 10});
-    bannanaState.setState({bannanas: 20});
-})
+appleState.setState({apples: 10});
+bannanaState.setState({bannanas: 20});
 ```
 
 ### React

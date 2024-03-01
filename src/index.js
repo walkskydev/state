@@ -1,5 +1,5 @@
 import createState from "./state/createState.js";
-import State, { observe, batch } from "./state/index.js";
+import State, { observe } from "./state/index.js";
 
-export { observe, batch, createState };
+export { observe, createState };
 export default State;

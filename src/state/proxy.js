@@ -1,4 +1,4 @@
-import callbackExecutor from "../listeners/callbackExecutor.js";
+import listenersExecutor from "../listeners/listenersExecutor.js";
 
 /**
  * @typedef {import('../listeners/listenersRegister.js').default} ListenerRegister
@@ -28,9 +28,9 @@ export function createProxy(originalTarget, state, statesRegister) {
 
 			const propertyListeners = statePropertiesMap.get(property);
 
-			if (callbackExecutor.processingListener) {
-				if (!propertyListeners.has(callbackExecutor.processingListener)) {
-					propertyListeners.add(callbackExecutor.processingListener);
+			if (listenersExecutor.processingListener) {
+				if (!propertyListeners.has(listenersExecutor.processingListener)) {
+					propertyListeners.add(listenersExecutor.processingListener);
 				}
 			}
 

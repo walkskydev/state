@@ -1,4 +1,4 @@
-import _listenerExecutor from "../listeners/callbackExecutor.js";
+import _listenerExecutor from "../listeners/listenersExecutor.js";
 import _listenersRegister from "../listeners/listenersRegister.js";
 import { createProxy } from "./proxy.js";
 import * as utils from "../utils.js";
@@ -94,11 +94,6 @@ export function observe(component) {
   };
 }
 
-/**
- * @param {callback} action
- */
-export function batch(action) {
-  _listenerExecutor.batch(action);
-}
+
 
 export default State
