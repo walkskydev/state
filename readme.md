@@ -1,14 +1,14 @@
 # State
-Performance-oriented and highly adaptable state manager for any types of JS applications: NodeJS, Web Components, WASM, React, Vue, etc..
+Performance-oriented and highly adaptable state manager with convenient syntax for all types of JS applications: 
+Node.js, Web Components, WASM, React, Vue, etc.
 
 ## Motivation
-State was designed as a pragmatic solution with important optimizations and convenient syntax. 
+The most important requirements for state managers is: 
+- [x] Automatic subscriptions (or signals)
+- [x] batch updates
+- [x] zero configuration
+- [ ] computed values
 
-## Key points
-* You don't need to care about rendering optimization as the state uses automatic dependencies.
-* From the simplest scenarios to the most complex, all you need to know are a few functions:
-   * `createState`+`geters/setters` - to create a state and manipulate the values
-   * `observe`/`subscribe` - for functions/components to watch for updates
 
 ## Getting started
 ```shell
@@ -26,19 +26,16 @@ const [state, setState] = createState({
   price: 100,
 });
 
-const MyComponent = ({count}) => <div>Apples: {state.apples()}</div>
+const MyComponent = ({count}) => <div>Apples: {state.apples}</div>
 ```
+
+
+
 #### Computed values
 To create computed values, define a **getter** that you can call anytime in your code.
-```typescript
+Under construction
 
-const [state, setState] = createState((getState) => ({
-   apples: 1,
-   price: 100,
-   count: (quantity) => quantity * getState().price,
-   totalPrice: () => getState().price * getState().apples,
-}));
-```
+
 #### Actions
 As well, you can create actions by passing second argument to `createState`. 
 ```typescript
@@ -54,16 +51,13 @@ const [state, actions] = createState((getState) => ({
 ```
 ```tsx
 const MyComponent = ({count}) => (<div>
-   Apples: {state.apples()}
-   Total price: {state.totalPrice()}
+   Apples: {state.apples}
+   Total price: {state.totalPrice}
    <button onClick={action.increaseApples}/>
 </div>)
 ```
 
-### Batch update
-State is optimized for components re-render.
-In cases when you need to update values from multiple stores,
-your component will re-render just once.
+
 
 ```tsx
 appleState.setState({apples: 10});
@@ -79,7 +73,7 @@ const useApplesState = createHook({apples: 1});
 
 const MyComponent = () => {
     const [apples, setApples] = useApplesState()
-    return <div>Apples: {apples()}</div>
+    return <div>Apples: {apples}</div>
 // ...
 }
 ```
@@ -89,7 +83,7 @@ If you are using another UI library based on functional components, to make your
 ```tsx
 const MyComponent = ({someProp}) => {
     return <div>
-       Apples: {state.apples()}
+       Apples: {state.apples}
        MyProps: {someProp}
     </div>
 }
@@ -156,43 +150,24 @@ write a bridge
 ```
 ```typescript
 import State from '@walksky/state'
-import { State as WasmState, AddToCartUseCase } from 'path_to_your_generated_wasm_typed_file';
+import { State as WasmStateInterface, AddToCart } from 'path_to_your_generated_wasm_typed_file';
 
-const state = new State({apples: 0});
+const cartState = new State({cart: []});
 
-// just extend WASM class
-class WasmBridge extends WasmState {
-    getState = state.getState
-    setState = state.setState
+// implementation of WASM interface
+class StateAdapter extends WasmStateInterface {
+    getState = cartState.getState
+    setState = cartState.setState
 }
 
-// create instances of state and use case
-let stateInstance = new WasmBridge();
-let addToCart = new AddToCartUseCase(stateInstance);
+// create instance of  usecase
+let addToCartUseCase = new AddToCartUseCase(stateAdaper);
 
-// sowhere in application
-let item = {product_id: 1, quantity: 1};
-addToCart.execute(item);
+// now Application state will be updaten on usecase execution
+addToCartUseCase.execute(item);
 ```
 
 
 
 ## Documentation
 :construction_worker: Under construction... 
-
-
-## Todo
-
-- [x] add logging
-- [x] add unsubscribe functionality
-- [x] write tests
-- [x] cancel side effects from listeners
-- [x] generic type for State  
-- [ ] add benchmarks
-- [ ] support for primitives (proposal)
-- [ ] mutable/immutable options (idea)
-- [ ] memoization support (planned)
-- [ ] nested getters (coming soon)
-- [ ] add middlewares
-- [ ] persistence support
-- [ ] integration with devtools
