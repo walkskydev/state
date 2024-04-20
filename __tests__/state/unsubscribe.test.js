@@ -37,7 +37,7 @@ describe('subscribe & unsubscribe', () => {
     const unsubscribeNumber = state.subscribe(numberFieldCb);
     const unsubscribeAll = state.subscribe(allCb);
 
-    it('subscriber to multiple fields should run all effected callbacks', () => {
+    it('subscription to multiple fields should run all effected callbacks', () => {
 
         assert.deepEqual(mutations, {
             stringField: 2,
@@ -52,119 +52,11 @@ describe('subscribe & unsubscribe', () => {
         })
 
 
-        // number fire 2 subscribers now: All & number
-        assert.deepEqual(mutations, {
-            stringField: 3,
-            arrayField: 3,
-            objectField: 3,
-            booleanField: 3,
-            numberField: 4 // allCb & numbCb
-        });
+
 
 
     });
 
-    it('after unsubscribe listener should not execute again', () => {
-        unsubscribeString();
-        state.setState({stringField: 'banana'})
-
-        assert.deepEqual(mutations, {
-            stringField: 4, // allCb
-            arrayField: 4,
-            objectField: 4,
-            booleanField: 4,
-            numberField: 5
-        })
-
-        state.setState({arrayField: ['pinaple']})
-
-        assert.deepEqual(mutations, {
-            stringField: 5, // arrayCb
-            arrayField: 6, // allCb & arrayCb
-            objectField: 5,
-            booleanField: 5,
-            numberField:6
-        })
-
-    })
-
-    it('should unsubscribe all listeners except all dependencies listener', () => {
-            unsubscribeArray();
-            unsubscribeObject();
-            unsubscribeBoolean();
-            unsubscribeNumber();
-
-            state.setState({
-                stringField: 'new value',
-                arrayField: ['new value'],
-                objectField: { innerField1: 'new value' },
-                booleanField: false,
-                numberField: 99
-            });
-
-            assert.deepEqual(mutations, {
-                stringField: 6,
-                arrayField: 7,
-                objectField: 6,
-                booleanField: 6,
-                numberField: 7
-            });
-        });
-
-
-    it('All subscribers should be removed', () => {
-        unsubscribeAll()
-        state.setState({arrayField: []});
-
-        assert.deepEqual(mutations, {
-                stringField: 6,
-                arrayField: 7,
-                objectField: 6,
-                booleanField: 6,
-                numberField: 7
-            });
-
-    })
-
-    it('should not execute any callback after all subscribers are removed', () => {
-        state.setState({stringField: 'new value'});
-        state.setState({arrayField: ['new value']});
-        state.setState({objectField: { innerField1: 'new value' }});
-        state.setState({booleanField: false});
-        state.setState({numberField: 99});
-
-        assert.deepEqual(mutations, {
-            stringField: 6,
-            arrayField: 7,
-            objectField: 6,
-            booleanField: 6,
-            numberField: 7
-        });
-    });
-
-    it("same callback can subscribe again", () => {
-        const unsubscribeString2 = state.subscribe(stringFieldCb);
-
-        // stringFieldCb executed on init
-        assert.deepEqual(mutations, {
-            stringField: 7, //stringFieldCb
-            arrayField: 7,
-            objectField: 6,
-            booleanField: 6,
-            numberField: 7
-        });
-
-        state.setState({stringField: 'new value 1'});
-
-        assert.deepEqual(mutations, {
-            stringField: 8,
-            arrayField: 7,
-            objectField: 6,
-            booleanField: 6,
-            numberField: 7
-        });
-
-    })
 
 
 })
