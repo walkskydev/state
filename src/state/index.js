@@ -53,6 +53,7 @@ class State {
         Reflect.set(this.#target, key, newValue[key]);
 
         if (statePropertiesMap.has(key)) {
+          // add all listeners as Set instead traversing
           this.#notifyLIsteners(key);
         }
       }
