@@ -40,27 +40,28 @@ class ListenersExecutor {
 		const result = callback();
 		this.processingListener = null;
 		return result;
-	}
+	};
 
 	/**
 	 * Executes all pending callback functions and then clears the queue.
 	 */
 	#executeListenersQueue = () => {
-		for (const callback of this.#pendingListeners) this.executeListener(callback);
+		for (const callback of this.#pendingListeners)
+			this.executeListener(callback);
 		this.#pendingListeners.clear();
-	}
+	};
 
 	/**
 	 * Execute setter
 	 * @param {callback} setter - The function to be executed
 	 */
-	runUpdate  = (setter) => {
+	runUpdate = (setter) => {
 		setter();
 
 		queueMicrotask(this.#executeListenersQueue);
 
 		this.#pendingListeners.clear();
-	}
+	};
 }
 
 export default new ListenersExecutor();

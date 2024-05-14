@@ -1,7 +1,7 @@
 import _listenerExecutor from "../listeners/listenersExecutor.js";
 import _listenersRegister from "../listeners/listenersRegister.js";
-import { createProxy } from "./proxy.js";
 import * as utils from "../utils.js";
+import { createProxy } from "./proxy.js";
 
 /**
  * @typedef {() => void} callback
@@ -9,79 +9,79 @@ import * as utils from "../utils.js";
 
 /** @template {object} T */
 class State {
-  /**@type T */
-  #target;
-  /**@type T */
-  #state;
+	/**@type T */
+	#target;
+	/**@type T */
+	#state;
 
-  /** @param {T} value */
-  constructor(value) {
-    if (utils.isObject(value)) {
-      this.#target = { ...value };
-      this.#state = createProxy(this.#target, this, _listenersRegister);
-    } else {
-      throw new Error("This type is not supported yet!");
-    }
-  }
+	/** @param {T} value */
+	constructor(value) {
+		if (utils.isObject(value)) {
+			this.#target = { ...value };
+			this.#state = createProxy(this.#target, this, _listenersRegister);
+		} else {
+			throw new Error("This type is not supported yet!");
+		}
+	}
 
-  /**
-   * Getter for state
-   *  @returns {T}
-   */
-  getState = () => {
-    return this.#state;
-  };
+	/**
+	 * Getter for state
+	 *  @returns {T}
+	 */
+	getState = () => {
+		return this.#state;
+	};
 
-  /**
-   * Method to update state
-   *  @param {Partial<T>} newValue
-   */
-  setState = (newValue) => {
-    if (_listenerExecutor.processingListener) {
-      console.warn("'SetState' method is not allowed in subscribers.");
-      _listenersRegister.unsubscribe(
-          _listenerExecutor.processingListener,
-          this,
-      );
-      return;
-    }
+	/**
+	 * Method to update state
+	 *  @param {Partial<T>} newValue
+	 */
+	setState = (newValue) => {
+		if (_listenerExecutor.processingListener) {
+			console.warn("'SetState' method is not allowed in subscribers.");
+			_listenersRegister.unsubscribe(
+				_listenerExecutor.processingListener,
+				this,
+			);
+			return;
+		}
 
-    const statePropertiesMap = _listenersRegister.getStatePropertiesMap(this);
+		const statePropertiesMap = _listenersRegister.getStatePropertiesMap(this);
 
-    _listenerExecutor.runUpdate(() => {
-      for (const key in newValue) {
-        Reflect.set(this.#target, key, newValue[key]);
+		_listenerExecutor.runUpdate(() => {
+			for (const key in newValue) {
+				Reflect.set(this.#target, key, newValue[key]);
 
-        if (statePropertiesMap.has(key)) {
-          // add all listeners as Set instead traversing
-          this.#notifyLIsteners(key);
-        }
-      }
-    });
-  };
+				if (statePropertiesMap.has(key)) {
+					// add all listeners as Set instead traversing
+					this.#notifyLIsteners(key);
+				}
+			}
+		});
+	};
 
-  /** @param {string} key */
-  #notifyLIsteners(key) {
-    const statePropertiesMap = _listenersRegister.getStatePropertiesMap(this);
+	/** @param {string} key */
+	#notifyLIsteners(key) {
+		const statePropertiesMap = _listenersRegister.getStatePropertiesMap(this);
 
-    for (const listener of statePropertiesMap.get(key)) {
-      _listenerExecutor.pushToPending(listener);
-    }
-  }
+		for (const listener of statePropertiesMap.get(key)) {
+			_listenerExecutor.pushToPending(listener);
+		}
+	}
 
-  /**
-   * Subscribe a listener to changes in state.
-   *
-   * @param {() => void} listener - The listener function to be called when a change occurs.
-   * @return {() => void} An unsubscribe function to remove the listener.
-   */
-  subscribe = (listener) => {
-    _listenerExecutor.executeListener(listener);
+	/**
+	 * Subscribe a listener to changes in state.
+	 *
+	 * @param {() => void} listener - The listener function to be called when a change occurs.
+	 * @return {() => void} An unsubscribe function to remove the listener.
+	 */
+	subscribe = (listener) => {
+		_listenerExecutor.executeListener(listener);
 
-    return () => {
-      _listenersRegister.unsubscribe(listener, this);
-    };
-  };
+		return () => {
+			_listenersRegister.unsubscribe(listener, this);
+		};
+	};
 }
 
 /**
@@ -90,11 +90,9 @@ class State {
  * @return {(...args: any[]) => any} The observer function that takes arguments and triggers the component.
  */
 export function observe(component) {
-  return (args) => {
-    return _listenerExecutor.executeListener(() => component(args));
-  };
+	return (args) => {
+		return _listenerExecutor.executeListener(() => component(args));
+	};
 }
 
-
-
-export default State
+export default State;

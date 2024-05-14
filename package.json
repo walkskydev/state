@@ -13,7 +13,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "husky",
-    "lint": "biome check ./src/*.js --apply",
+    "lint": "biome check --apply ./src/",
     "test": "mocha --recursive ./__tests__"
   },
   "keywords": [
