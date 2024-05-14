@@ -3,7 +3,7 @@
  * @typedef {number} BitMask
  */
 
-let index = 0;
+let globalBitIndex = 0;
 
 /** @type {Map<Observer, [BitIndex, BitMask]>} */
 export const observersMap = new Map(); //  [() => {}, [1, 256]]
@@ -16,26 +16,27 @@ export const bitsMap = new Map(); // [0, new Map([ [32, () => {}] ])]
 
 /** @param {Observer} observer */
 export const addObserver = (observer) => {
-	if (freeBitsStack.length !== 0) {
+	const hasFreeBits = freeBitsStack.length !== 0;
+
+	if (hasFreeBits) {
 		const [index, bit] = freeBitsStack.pop();
 		observersMap.set(observer, [index, bit]);
 
-		const current = bitsMap.get(index);
-		current.set(bit, observer);
+		const bitIndex = bitsMap.get(index);
+		bitIndex.set(bit, observer);
 	} else {
-		const newIndex = Math.floor(index / 31);
+		const newBitIndex = Math.floor(globalBitIndex / 31);
 
-		if (!bitsMap.has(newIndex)) {
-			bitsMap.set(newIndex, new Map());
+		if (!bitsMap.has(newBitIndex)) {
+			bitsMap.set(newBitIndex, new Map());
 		}
 
-		const current = bitsMap.get(newIndex);
-		const bit = 2 ** (index % 31);
+		const bitIndex = bitsMap.get(newBitIndex);
+		const bit = 2 ** (globalBitIndex % 31);
 
-		current.set(bit, observer);
-
-		observersMap.set(observer, [newIndex, bit]);
-		index++;
+		bitIndex.set(bit, observer);
+		observersMap.set(observer, [newBitIndex, bit]);
+		globalBitIndex++;
 	}
 };
 
