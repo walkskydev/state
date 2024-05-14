@@ -1,17 +1,17 @@
 /** @typedef {() => void} Observer
- * @typedef {number} BitIndex
+ * @typedef {number} BitsRangeIndex
  * @typedef {number} BitMask
  */
 
 let globalBitIndex = 0;
 
-/** @type {Map<Observer, [BitIndex, BitMask]>} */
+/** @type {Map<Observer, [BitsRangeIndex, BitMask]>} */
 const observersMap = new Map(); //  [() => {}, [1, 256]]
 
 /** @type {[number, number][]} */
 const freeBitsStack = [];
 
-/** @type {Map<BitIndex, Map<BitMask, Observer>>} */
+/** @type {Map<BitsRangeIndex, Map<BitMask, Observer>>} */
 const bitsMap = new Map(); // [0, new Map([ [32, () => {}] ])]
 
 /** @param {Observer} observer */
@@ -22,20 +22,20 @@ export const addObserver = (observer) => {
 		const [index, bit] = freeBitsStack.pop();
 		observersMap.set(observer, [index, bit]);
 
-		const bitIndex = bitsMap.get(index);
-		bitIndex.set(bit, observer);
+		const bitsRange = bitsMap.get(index);
+		bitsRange.set(bit, observer);
 	} else {
-		const newBitIndex = Math.floor(globalBitIndex / 31);
+		const currentBitsRange = Math.floor(globalBitIndex / 31);
 
-		if (!bitsMap.has(newBitIndex)) {
-			bitsMap.set(newBitIndex, new Map());
+		if (!bitsMap.has(currentBitsRange)) {
+			bitsMap.set(currentBitsRange, new Map());
 		}
 
-		const bitIndex = bitsMap.get(newBitIndex);
+		const bitIndex = bitsMap.get(currentBitsRange);
 		const bit = 2 ** (globalBitIndex % 31);
 
 		bitIndex.set(bit, observer);
-		observersMap.set(observer, [newBitIndex, bit]);
+		observersMap.set(observer, [currentBitsRange, bit]);
 		globalBitIndex++;
 	}
 };
@@ -54,18 +54,18 @@ export const removeObserver = (observer) => {
 
 /**
  * @param {Observer} observer
- * @return {[BitIndex, BitMask]}
+ * @return {[BitsRangeIndex, BitMask] | undefined}
  */
 export function getObserverBit(observer) {
 	return observersMap.get(observer);
 }
 
 /**
- * @param {[BitIndex, BitMask]} bit
- *
+ * @param {[BitsRangeIndex, BitMask]} bit
+ * @return {Observer | undefined}
  */
 export function getObserver([bitIndex, bitMask]) {
-	const bits = bitsMap.get(bitIndex);
+	const bitsRange = bitsMap.get(bitIndex);
 
-	return bits?.get(bitMask);
+	return bitsRange?.get(bitMask);
 }
