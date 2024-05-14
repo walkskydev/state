@@ -9,9 +9,9 @@ import { createProxy } from "./proxy.js";
 
 /** @template {object} T */
 class State {
-	/**@type T */
+	/**@type {T} */
 	#target;
-	/**@type T */
+	/**@type {T} */
 	#state;
 
 	/** @param {T} value */
