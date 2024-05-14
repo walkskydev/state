@@ -6,13 +6,13 @@
 let globalBitIndex = 0;
 
 /** @type {Map<Observer, [BitIndex, BitMask]>} */
-export const observersMap = new Map(); //  [() => {}, [1, 256]]
+const observersMap = new Map(); //  [() => {}, [1, 256]]
 
 /** @type {[number, number][]} */
 const freeBitsStack = [];
 
 /** @type {Map<BitIndex, Map<BitMask, Observer>>} */
-export const bitsMap = new Map(); // [0, new Map([ [32, () => {}] ])]
+const bitsMap = new Map(); // [0, new Map([ [32, () => {}] ])]
 
 /** @param {Observer} observer */
 export const addObserver = (observer) => {
@@ -51,3 +51,21 @@ export const removeObserver = (observer) => {
 	freeBitsStack.push([index, bit]);
 	console.log("removed");
 };
+
+/**
+ * @param {Observer} observer
+ * @return {[BitIndex, BitMask]}
+ */
+export function getObserverBit(observer) {
+	return observersMap.get(observer);
+}
+
+/**
+ * @param {[BitIndex, BitMask]} bit
+ *
+ */
+export function getObserver([bitIndex, bitMask]) {
+	const bits = bitsMap.get(bitIndex);
+
+	return bits?.get(bitMask);
+}
