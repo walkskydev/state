@@ -25,7 +25,7 @@ export const addObserver = (observer) => {
 	} else {
 		const newIndex = Math.floor(index / 31);
 
-		if (bitsMap.has(newIndex)) {
+		if (!bitsMap.has(newIndex)) {
 			bitsMap.set(newIndex, new Map());
 		}
 
@@ -41,9 +41,12 @@ export const addObserver = (observer) => {
 
 /** @param {Observer} observer */
 export const removeObserver = (observer) => {
-	const [index, bit] = observersMap.get(observer);
+	const [index, bit] = observersMap.get(observer) || [];
+	if (index === undefined || !bit === undefined) return;
+
 	const current = bitsMap.get(index);
 	current.delete(bit);
 	observersMap.delete(observer);
 	freeBitsStack.push([index, bit]);
+	console.log("removed");
 };
