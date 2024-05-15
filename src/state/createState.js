@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import State from "./index.js";
 
 function processObjectProps(objKeys, obj) {

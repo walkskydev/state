@@ -25,10 +25,12 @@ export const addObserver = (observer) => {
 	const hasFreeBits = freeBitsStack.length !== 0;
 
 	if (hasFreeBits) {
+		// @ts-ignore
 		const [index, bit] = freeBitsStack.pop();
 		observersMap.set(observer, [index, bit]);
 
 		const bitsRange = bitsMap.get(index);
+		// @ts-ignore
 		bitsRange.set(bit, observer);
 
 		return [index, bit];
@@ -42,6 +44,7 @@ export const addObserver = (observer) => {
 	const bitIndex = bitsMap.get(currentBitsRange);
 	const bit = 2 ** (globalBitIndex % 31);
 
+	// @ts-ignore
 	bitIndex.set(bit, observer);
 	observersMap.set(observer, [currentBitsRange, bit]);
 	globalBitIndex++;
@@ -52,9 +55,10 @@ export const addObserver = (observer) => {
 /** @param {Observer} observer */
 export const removeObserver = (observer) => {
 	const [index, bit] = observersMap.get(observer) || [];
-	if (index === undefined || !bit === undefined) return;
+	if (index === undefined || bit === undefined) return;
 
 	const current = bitsMap.get(index);
+	// @ts-ignore
 	current.delete(bit);
 	observersMap.delete(observer);
 	freeBitsStack.push([index, bit]);

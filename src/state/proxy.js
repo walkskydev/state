@@ -19,6 +19,7 @@ export function createProxy(originalTarget, observers) {
 			if (currentExecutor !== null) {
 				const [index, bit] = addObserver(currentExecutor);
 
+				// @ts-ignore
 				observers.set(property, [index, (observers.get(property) || 0) | bit]);
 			}
 

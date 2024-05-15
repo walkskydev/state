@@ -29,7 +29,4 @@ describe("create state", () => {
     assert.equal(state.apples(), 2);
     assert.equal(state.totalPrice(), 200);
   })
-
-
-
 })

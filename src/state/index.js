@@ -32,7 +32,9 @@ class State {
 
 	/**
 	 * Getter for state
-	 *  @returns {T}
+	 * @method
+	 * @public
+	 * @returns {T}
 	 */
 	getState = () => {
 		return this.#state;
@@ -45,7 +47,9 @@ class State {
 
 	/**
 	 * Method to update state
-	 *  @param {Partial<T>} newValue
+	 * @method
+	 * @public
+	 * @param {Partial<T>} newValue
 	 */
 	setState = (newValue) => {
 		if (autoTrackableObserver) {
@@ -61,7 +65,7 @@ class State {
 		}
 	};
 
-	/** @param {string} key */
+	/** @param {keyof T} key */
 	#notifyObservers(key) {
 		const observersMask = this.#observers.get(key);
 
@@ -72,6 +76,9 @@ class State {
 
 	/**
 	 * Subscribe a listener to changes in state.
+	 *
+	 * @method
+	 * @public
 	 *
 	 * @param {() => void} listener - The listener function to be called when a change occurs.
 	 * @return {() => void} An unsubscribe function to remove the listener.
