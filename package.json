@@ -13,7 +13,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "husky",
-    "lint": "biome check ./src/*.js --apply",
+    "lint": "biome check --apply ./src/",
     "test": "mocha --recursive ./__tests__"
   },
   "keywords": [
@@ -30,7 +30,7 @@
   "author": "Valerii Volkovskyi",
   "license": "ISC",
   "devDependencies": {
-    "@biomejs/biome": "1.5.3",
+    "@biomejs/biome": "1.7.3",
     "assert": "^2.1.0",
     "chai": "^5.0.3",
     "git-format-staged": "^3.0.0",

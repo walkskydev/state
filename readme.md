@@ -1,13 +1,15 @@
 # State
-Performance-oriented and highly adaptable state manager with convenient syntax for all types of JS applications: 
-Node.js, Web Components, WASM, React, Vue, etc.
+Performance-oriented and highly adaptable state manager for all types of JS applications: 
+Node.js, Web Components, WASM, React, etc.
 
 ## Motivation
 The most important requirements for state managers is: 
-- [x] Automatic subscriptions (or signals)
-- [x] batch updates
-- [x] zero configuration
-- [ ] computed values
+- [x] **Automatic subscriptions** - you don't need to care about
+dependencies or configure selectors to get reactive updates.
+- [x] **Batch updates** - you could call `setState` function multiple times for one or different
+states. It will run only one update
+- [ ] **Computed values** - run updates only one of values has been changed.
+- [ ] **Optimized UI rendering** - observers tracking system prevent multiple calls of functions during the rendering phase. 
 
 
 ## Getting started
@@ -26,61 +28,19 @@ const [state, setState] = createState({
   price: 100,
 });
 
-const MyComponent = ({count}) => <div>Apples: {state.apples}</div>
+const MyComponent = () => <div>Apples: {state.apples}</div>
 ```
 
 
 
 #### Computed values
-To create computed values, define a **getter** that you can call anytime in your code.
 Under construction
 
-
-#### Actions
-As well, you can create actions by passing second argument to `createState`. 
-```typescript
-const [state, actions] = createState((getState) => ({
-   apples: 1,
-   price: 100,
-   totalPrice: () => getState().price * getState().apples,
-}),
-(setState, getState) => ({
-   increaseApples: () => {setState({apples: getState().apples + 1})}
- })
-);
-```
-```tsx
-const MyComponent = ({count}) => (<div>
-   Apples: {state.apples}
-   Total price: {state.totalPrice}
-   <button onClick={action.increaseApples}/>
-</div>)
-```
-
-
-
-```tsx
-appleState.setState({apples: 10});
-bannanaState.setState({bannanas: 20});
-```
-
-### React
-If you are using React all you need is create a hook.
-```tsx
-import createHook from '@walksky/state/hook'
-
-const useApplesState = createHook({apples: 1});
-
-const MyComponent = () => {
-    const [apples, setApples] = useApplesState()
-    return <div>Apples: {apples}</div>
-// ...
-}
-```
-
 ### observe()
-If you are using another UI library based on functional components, to make your component reactive, wrap it with the `observe` function.
+If you are using UI library based on functional components, to make your component reactive, wrap it with the `observe` function.
 ```tsx
+import { observe } from '@walksky/state';
+
 const MyComponent = ({someProp}) => {
     return <div>
        Apples: {state.apples}
@@ -93,14 +53,11 @@ export default observe(MyComponent);
 
 
 ### State class
-If you need only a classic state, and you will care about where to store computed values and actions,
-you can create an instance of State.
+If you need a classic state, you could create an instance of State.
 ```tsx
 import State from '@walksky/state'
 
 const state = new State({apples: 0});
-// define computed values
-const totalPrice = () => 100 * state.getState().apples
 // define action
 const increaseApples = () => state.setState({apples: state.getState().apples + 1})
 
@@ -118,6 +75,7 @@ In most cases, subscribe are rarely needed. For example:
 state.subscribe(() => console.log('Vaue updated:', state.getState().apples));
 ```
 
+## Use cases
 ### Web components
 All you need to do is subscribe in `connectedCallback` in your lifecycle callbacks
 ```javascript
