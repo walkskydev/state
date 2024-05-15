@@ -1,10 +1,16 @@
-import _listenerExecutor from "../listeners/listenersExecutor.js";
-import _listenersRegister from "../listeners/listenersRegister.js";
+import {
+	autoTrackableObserver,
+	executeObserverWithAutoTrack,
+} from "../observers/listenersExecutor.js";
+import { removeObserver } from "../observers/observers.js";
+import { addObserverToExecutionQueue } from "../observers/pendingObservers.js";
 import * as utils from "../utils.js";
 import { createProxy } from "./proxy.js";
 
 /**
  * @typedef {() => void} callback
+ * @typedef {number} BitsRange
+ * @typedef {number} BitMask
  */
 
 /** @template {object} T */
@@ -18,7 +24,7 @@ class State {
 	constructor(value) {
 		if (utils.isObject(value)) {
 			this.#target = { ...value };
-			this.#state = createProxy(this.#target, this, _listenersRegister);
+			this.#state = createProxy(this.#target, this.#observers);
 		} else {
 			throw new Error("This type is not supported yet!");
 		}
@@ -33,39 +39,34 @@ class State {
 	};
 
 	/**
+	 * @type {Map<keyof T, [BitsRange, BitMask]>}
+	 */
+	#observers = new Map();
+
+	/**
 	 * Method to update state
 	 *  @param {Partial<T>} newValue
 	 */
 	setState = (newValue) => {
-		if (_listenerExecutor.processingListener) {
+		if (autoTrackableObserver) {
 			console.warn("'SetState' method is not allowed in subscribers.");
-			_listenersRegister.unsubscribe(
-				_listenerExecutor.processingListener,
-				this,
-			);
+			removeObserver(autoTrackableObserver);
 			return;
 		}
 
-		const statePropertiesMap = _listenersRegister.getStatePropertiesMap(this);
+		for (const key in newValue) {
+			Reflect.set(this.#target, key, newValue[key]);
 
-		_listenerExecutor.runUpdate(() => {
-			for (const key in newValue) {
-				Reflect.set(this.#target, key, newValue[key]);
-
-				if (statePropertiesMap.has(key)) {
-					// add all listeners as Set instead traversing
-					this.#notifyLIsteners(key);
-				}
-			}
-		});
+			this.#notifyObservers(key);
+		}
 	};
 
 	/** @param {string} key */
-	#notifyLIsteners(key) {
-		const statePropertiesMap = _listenersRegister.getStatePropertiesMap(this);
+	#notifyObservers(key) {
+		const observersMask = this.#observers.get(key);
 
-		for (const listener of statePropertiesMap.get(key)) {
-			_listenerExecutor.pushToPending(listener);
+		if (observersMask !== undefined) {
+			addObserverToExecutionQueue(observersMask);
 		}
 	}
 
@@ -76,10 +77,10 @@ class State {
 	 * @return {() => void} An unsubscribe function to remove the listener.
 	 */
 	subscribe = (listener) => {
-		_listenerExecutor.executeListener(listener);
+		executeObserverWithAutoTrack(listener);
 
 		return () => {
-			_listenersRegister.unsubscribe(listener, this);
+			removeObserver(listener);
 		};
 	};
 }
@@ -91,7 +92,7 @@ class State {
  */
 export function observe(component) {
 	return (args) => {
-		return _listenerExecutor.executeListener(() => component(args));
+		return executeObserverWithAutoTrack(() => component(args));
 	};
 }
 

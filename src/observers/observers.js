@@ -14,8 +14,14 @@ const freeBitsStack = [];
 /** @type {Map<BitsRangeIndex, Map<BitMask, Observer>>} */
 const bitsMap = new Map(); // [0, new Map([ [32, () => {}] ])]
 
-/** @param {Observer} observer */
+/** @param {Observer} observer
+ *  @return {[BitsRangeIndex, BitMask]}
+ */
 export const addObserver = (observer) => {
+	const registeredBit = getObserverBit(observer);
+
+	if (registeredBit !== undefined) return registeredBit;
+
 	const hasFreeBits = freeBitsStack.length !== 0;
 
 	if (hasFreeBits) {
@@ -24,20 +30,23 @@ export const addObserver = (observer) => {
 
 		const bitsRange = bitsMap.get(index);
 		bitsRange.set(bit, observer);
-	} else {
-		const currentBitsRange = Math.floor(globalBitIndex / 31);
 
-		if (!bitsMap.has(currentBitsRange)) {
-			bitsMap.set(currentBitsRange, new Map());
-		}
-
-		const bitIndex = bitsMap.get(currentBitsRange);
-		const bit = 2 ** (globalBitIndex % 31);
-
-		bitIndex.set(bit, observer);
-		observersMap.set(observer, [currentBitsRange, bit]);
-		globalBitIndex++;
+		return [index, bit];
 	}
+	const currentBitsRange = Math.floor(globalBitIndex / 31);
+
+	if (!bitsMap.has(currentBitsRange)) {
+		bitsMap.set(currentBitsRange, new Map());
+	}
+
+	const bitIndex = bitsMap.get(currentBitsRange);
+	const bit = 2 ** (globalBitIndex % 31);
+
+	bitIndex.set(bit, observer);
+	observersMap.set(observer, [currentBitsRange, bit]);
+	globalBitIndex++;
+
+	return [currentBitsRange, bit];
 };
 
 /** @param {Observer} observer */
@@ -49,7 +58,6 @@ export const removeObserver = (observer) => {
 	current.delete(bit);
 	observersMap.delete(observer);
 	freeBitsStack.push([index, bit]);
-	console.log("removed");
 };
 
 /**

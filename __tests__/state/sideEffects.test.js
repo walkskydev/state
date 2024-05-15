@@ -20,11 +20,6 @@ describe("mutations in subscribers should be restricted",  () => {
     state.setState({ price: 9999999999999 });
   }
 
-
-
-
-
-
   const unsubscribe = state.subscribe(subscriberWithEffect);
 
   it("'subscriberWithEffect' should not update the state", () => {
