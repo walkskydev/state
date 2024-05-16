@@ -8,7 +8,7 @@ The most important requirements for state managers is:
 dependencies or configure selectors to get reactive updates.
 - [x] **Batch updates** - you could call `setState` function multiple times for one or different
 states. It will run only one update
-- [ ] **Computed values** - run updates only one of values has been changed.
+- [x] **Computed values** - recalculate functions only when one of dependency values has been changed.
 - [ ] **Optimized UI rendering** - observers tracking system prevent multiple calls of functions during the rendering phase. 
 
 

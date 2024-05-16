@@ -12,6 +12,14 @@ const BITS = [
  */
 const executionQueue = new Map();
 
+/**
+ *
+ * @param {[number, number]} bits
+ */
+export function isObserverInExecutionQueue([bigRangeIndex, bitMask]) {
+	return ((executionQueue.get(bigRangeIndex) || 0) & bitMask) !== 0;
+}
+
 let isPending = false;
 
 /**

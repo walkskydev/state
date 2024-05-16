@@ -2,7 +2,7 @@
   "name": "@walksky/state",
   "tags": [],
   "version": "0.1.0",
-  "description": "Efficient, framework agnostic state manager, and highly adaptable state manager optimized for robust functionality.",
+  "description": "Efficient, universal state manager, optimized for robust functionality.",
   "repository": {
     "type": "git",
     "url": "https://github.com/walkskydev/state.git"
@@ -37,8 +37,5 @@
     "husky": "^9.0.6",
     "mocha": "^10.2.0",
     "typescript": "^5.3.3"
-  },
-  "peerDependencies": {
-    "react": "^18.0.0"
   }
 }
