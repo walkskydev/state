@@ -23,7 +23,7 @@ class State {
 	/** @param {T} value */
 	constructor(value) {
 		if (utils.isObject(value)) {
-			this.#target = { ...value };
+			this.#target = { ...value }; // todo iterate properly & check types & add class
 			this.#state = createProxy(this.#target, this.#observers);
 		} else {
 			throw new Error("This type is not supported yet!");

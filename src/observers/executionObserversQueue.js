@@ -32,7 +32,8 @@ function executeObserversInRange(bitRangeIndex, observersBitMask) {
 	for (const bit of BITS) {
 		if ((observersBitMask & bit) !== 0) {
 			const observer = getObserver([bitRangeIndex, bit]);
-			if (observer) {
+
+			if (observer !== undefined) {
 				observer();
 			}
 		}
