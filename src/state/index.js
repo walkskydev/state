@@ -1,9 +1,9 @@
 import {
 	autoTrackableObserver,
-	executeObserverWithAutoTrack,
-} from "../observers/listenersExecutor.js";
+	executeTrackableObserver,
+} from "../observers/executeTrackableObserver.js";
+import { addObserverToExecutionQueue } from "../observers/executionObserversQueue.js";
 import { removeObserver } from "../observers/observers.js";
-import { addObserverToExecutionQueue } from "../observers/pendingObservers.js";
 import * as utils from "../utils.js";
 import { createProxy } from "./proxy.js";
 
@@ -23,7 +23,7 @@ class State {
 	/** @param {T} value */
 	constructor(value) {
 		if (utils.isObject(value)) {
-			this.#target = { ...value };
+			this.#target = { ...value }; // todo iterate properly & check types & add class
 			this.#state = createProxy(this.#target, this.#observers);
 		} else {
 			throw new Error("This type is not supported yet!");
@@ -70,6 +70,7 @@ class State {
 		const observersMask = this.#observers.get(key);
 
 		if (observersMask !== undefined) {
+			// TODO: group to schedule just once on setState
 			addObserverToExecutionQueue(observersMask);
 		}
 	}
@@ -84,7 +85,7 @@ class State {
 	 * @return {() => void} An unsubscribe function to remove the listener.
 	 */
 	subscribe = (listener) => {
-		executeObserverWithAutoTrack(listener);
+		executeTrackableObserver(listener);
 
 		return () => {
 			removeObserver(listener);
@@ -99,7 +100,7 @@ class State {
  */
 export function observe(component) {
 	return (args) => {
-		return executeObserverWithAutoTrack(() => component(args));
+		return executeTrackableObserver(() => component(args));
 	};
 }
 

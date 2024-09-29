@@ -1,4 +1,4 @@
-import { autoTrackableObserver } from "../observers/listenersExecutor.js";
+import { autoTrackableObserver } from "../observers/executeTrackableObserver.js";
 import { addObserver, getObserverBit } from "../observers/observers.js";
 
 /**

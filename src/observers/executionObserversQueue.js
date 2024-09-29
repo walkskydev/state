@@ -12,6 +12,14 @@ const BITS = [
  */
 const executionQueue = new Map();
 
+/**
+ *
+ * @param {[number, number]} bits
+ */
+export function isObserverInExecutionQueue([bigRangeIndex, bitMask]) {
+	return ((executionQueue.get(bigRangeIndex) || 0) & bitMask) !== 0;
+}
+
 let isPending = false;
 
 /**
@@ -24,7 +32,8 @@ function executeObserversInRange(bitRangeIndex, observersBitMask) {
 	for (const bit of BITS) {
 		if ((observersBitMask & bit) !== 0) {
 			const observer = getObserver([bitRangeIndex, bit]);
-			if (observer) {
+
+			if (observer !== undefined) {
 				observer();
 			}
 		}
