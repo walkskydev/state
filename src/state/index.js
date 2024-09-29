@@ -52,15 +52,14 @@ class State {
 	 * @param {Partial<T>} newValue
 	 */
 	setState = (newValue) => {
-		if (autoTrackableObserver) {
-			console.warn("'SetState' method is not allowed in subscribers.");
-			removeObserver(autoTrackableObserver);
-			return;
+		if (autoTrackableObserver.length > 0) {
+			// @ts-ignore
+			removeObserver(autoTrackableObserver.at(-1));
+			throw new Error("'setState' method is not allowed in subscribers");
 		}
 
 		for (const key in newValue) {
 			Reflect.set(this.#target, key, newValue[key]);
-
 			this.#notifyObservers(key);
 		}
 	};
@@ -70,7 +69,6 @@ class State {
 		const observersMask = this.#observers.get(key);
 
 		if (observersMask !== undefined) {
-			// TODO: group to schedule just once on setState
 			addObserverToExecutionQueue(observersMask);
 		}
 	}
