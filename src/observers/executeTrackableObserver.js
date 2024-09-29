@@ -4,19 +4,20 @@
 
 /**
  * Active subscription observer
- * @type {Callback | null}
+ * @type {Array<Callback>}
  */
-export let autoTrackableObserver = null;
+export const autoTrackableObserver = [];
 /**
  *
  * @param {Callback} callback
  * @return {*}
  */
 export const executeTrackableObserver = (callback) => {
-	autoTrackableObserver = callback;
+	autoTrackableObserver.push(callback);
 
-	const result = callback();
-	autoTrackableObserver = null;
-
-	return result;
+	try {
+		return callback();
+	} finally {
+		autoTrackableObserver.pop();
+	}
 };

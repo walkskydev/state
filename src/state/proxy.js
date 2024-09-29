@@ -16,8 +16,9 @@ export function createProxy(originalTarget, observers) {
 		get: (target, property) => {
 			const currentExecutor = autoTrackableObserver;
 
-			if (currentExecutor !== null) {
-				const [index, bit] = addObserver(currentExecutor);
+			if (autoTrackableObserver.length > 0) {
+				// @ts-ignore
+				const [index, bit] = addObserver(autoTrackableObserver.at(-1));
 
 				// @ts-ignore
 				observers.set(property, [index, (observers.get(property) || 0) | bit]);
