@@ -5,11 +5,11 @@
 
 let globalBitIndex = 0;
 
-/** @type {Map<Observer, [BitsRangeIndex, BitMask]>} */
-const observersMap = new Map(); //  [() => {}, [1, 256]]
-
 /** @type {[number, number][]} */
 const freeBitsStack = [];
+
+/** @type {Map<Observer, [BitsRangeIndex, BitMask]>} */
+const observersMap = new Map(); //  [() => {}, [1, 256]]
 
 /** @type {Map<BitsRangeIndex, Map<BitMask, Observer>>} */
 const bitsMap = new Map(); // [0, new Map([ [32, () => {}] ])]

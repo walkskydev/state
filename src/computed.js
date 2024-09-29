@@ -13,9 +13,7 @@ import { getObserverBit } from "./observers/observers.js";
 export function computed(observer) {
 	/** @type {unknown} */
 	let cachedValue;
-
 	cachedValue = executeTrackableObserver(observer);
-
 	const bits = getObserverBit(observer);
 
 	return () => {
