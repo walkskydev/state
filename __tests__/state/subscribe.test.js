@@ -10,7 +10,7 @@ describe("Test 'subscribe' method...", () => {
 		markets: [],
 	};
 
-	let result = 0;
+	let numberOfCalls = 0;
 
 	const state = new State(initialState);
 
@@ -18,15 +18,15 @@ describe("Test 'subscribe' method...", () => {
 		const order = state.getState();
 
 		order.apples;
-		result += 1;
+		numberOfCalls += 1;
 	};
 
 	it("Observer should run on subscribe and each set state call", () => {
 		state.subscribe(observer);
-		assert.equal(result, 1);
+		assert.equal(numberOfCalls, 1);
 		state.setState({ apples: 9999999999999 });
-		assert.equal(result, 2);
+		assert.equal(numberOfCalls, 2);
 		state.setState({ apples: 12 });
-		assert.equal(result, 3);
+		assert.equal(numberOfCalls, 3);
 	});
 });
