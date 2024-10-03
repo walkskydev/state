@@ -14,14 +14,21 @@ export function createProxy(originalTarget, observers) {
 			return true;
 		},
 		get: (target, property) => {
-			const currentExecutor = autoTrackableObserver;
-
 			if (autoTrackableObserver.length > 0) {
-				// @ts-ignore
-				const [index, bit] = addObserver(autoTrackableObserver.at(-1));
+				const current = autoTrackableObserver.at(-1);
 
 				// @ts-ignore
-				observers.set(property, [index, (observers.get(property) || 0) | bit]);
+				if (getObserverBit(current) === undefined) {
+					// @ts-ignore
+					const [index, bit] = addObserver(current);
+
+					// @ts-ignore
+					observers.set(property, [
+						index,
+						// @ts-ignore
+						(observers.get(property) || 0) | bit,
+					]);
+				}
 			}
 
 			return Reflect.get(originalTarget, property);
