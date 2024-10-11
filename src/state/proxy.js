@@ -14,6 +14,7 @@ export function createProxy(originalTarget, observers) {
 			return true;
 		},
 		get: (target, property) => {
+			// todo: move it to microtask
 			if (autoTrackableObserver.length > 0) {
 				const current = autoTrackableObserver.at(-1);
 
@@ -24,7 +25,7 @@ export function createProxy(originalTarget, observers) {
 
 					// @ts-ignore
 					observers.set(property, [
-						index,
+						index, // todo: BUG - this will rewrite previous index if index will be increased
 						// @ts-ignore
 						(observers.get(property) || 0) | bit,
 					]);
