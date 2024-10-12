@@ -1,5 +1,8 @@
 import { autoTrackableObserver } from "../observers/executeTrackableObserver.js";
-import { addObserver, getObserverBit } from "../observers/observers.js";
+import {
+	addObserver,
+	isObserverHasRegistered,
+} from "../observers/observers.js";
 
 /**
  * @template {object} T
@@ -19,16 +22,19 @@ export function createProxy(originalTarget, observers) {
 				const current = autoTrackableObserver.at(-1);
 
 				// @ts-ignore
-				if (getObserverBit(current) === undefined) {
+				if (!isObserverHasRegistered(current)) {
 					// @ts-ignore
-					const [index, bit] = addObserver(current);
+					const observerBitAddress = addObserver(current);
 
-					// @ts-ignore
-					observers.set(property, [
-						index, // todo: BUG - this will rewrite previous index if index will be increased
+					if (observerBitAddress !== undefined) {
+						const [index, bit] = observerBitAddress;
 						// @ts-ignore
-						(observers.get(property) || 0) | bit,
-					]);
+						observers.set(property, [
+							index, // todo: BUG - this will rewrite previous index if index will be increased
+							// @ts-ignore
+							(observers.get(property) || 0) | bit,
+						]);
+					}
 				}
 			}
 

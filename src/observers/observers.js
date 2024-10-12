@@ -8,30 +8,30 @@ let globalBitIndex = 0;
 /** @type {[number, number][]} */
 const freeBitsStack = [];
 
-/** @type {Map<Observer, [BitsRangeIndex, BitMask]>} */
-const observersMap = new Map(); //  [() => {}, [1, 256]]
+/** @type {WeakSet<Observer>} */
+const globalObserversWeakSet = new WeakSet();
 
-/** @type {Map<BitsRangeIndex, Map<BitMask, Observer>>} */
-const bitsMap = new Map(); // [0, new Map([ [32, () => {}] ])]
+/** @type {Map<BitsRangeIndex, Map<BitMask, WeakRef<Observer>>>} */
+const bitsMap = new Map(); // [0, Map([ [32, () => {}] ])]
 
 /** @param {Observer} observer
- *  @return {[BitsRangeIndex, BitMask]}
+ *  @return {[BitsRangeIndex, BitMask] | undefined}
  */
 export const addObserver = (observer) => {
-	const registeredBit = getObserverBit(observer);
+	const isRegistered = isObserverHasRegistered(observer);
 
-	if (registeredBit !== undefined) return registeredBit;
+	if (isRegistered) return undefined;
 
 	const hasFreeBits = freeBitsStack.length !== 0;
 
 	if (hasFreeBits) {
 		// @ts-ignore
 		const [index, bit] = freeBitsStack.pop();
-		observersMap.set(observer, [index, bit]);
+		globalObserversWeakSet.add(observer);
 
 		const bitsRange = bitsMap.get(index);
 		// @ts-ignore
-		bitsRange.set(bit, observer);
+		bitsRange.set(bit, new WeakRef(observer));
 
 		return [index, bit];
 	}
@@ -45,8 +45,8 @@ export const addObserver = (observer) => {
 	const bit = 2 ** (globalBitIndex % 31);
 
 	// @ts-ignore
-	bitIndex.set(bit, observer);
-	observersMap.set(observer, [currentBitsRange, bit]);
+	bitIndex.set(bit, new WeakRef(observer));
+	globalObserversWeakSet.add(observer);
 	globalBitIndex++;
 
 	return [currentBitsRange, bit];
@@ -54,22 +54,22 @@ export const addObserver = (observer) => {
 
 /** @param {Observer} observer */
 export const removeObserver = (observer) => {
-	const [index, bit] = observersMap.get(observer) || [];
-	if (index === undefined || bit === undefined) return;
+	// const [index, bit] = globalObserversWeakSet.get(observer) || [];
+	// if (index === undefined || bit === undefined) return;
 
-	const current = bitsMap.get(index);
+	// const current = bitsMap.get(index);
 	// @ts-ignore
-	current.delete(bit);
-	observersMap.delete(observer);
-	freeBitsStack.push([index, bit]);
+	// current.delete(bit);
+	globalObserversWeakSet.delete(observer);
+	// freeBitsStack.push([index, bit]);
 };
 
 /**
  * @param {Observer} observer
- * @return {[BitsRangeIndex, BitMask] | undefined}
+ * @return {boolean}
  */
-export function getObserverBit(observer) {
-	return observersMap.get(observer);
+export function isObserverHasRegistered(observer) {
+	return globalObserversWeakSet.has(observer);
 }
 
 /**
@@ -79,5 +79,5 @@ export function getObserverBit(observer) {
 export function getObserver([bitIndex, bitMask]) {
 	const bitsRange = bitsMap.get(bitIndex);
 
-	return bitsRange?.get(bitMask);
+	return bitsRange?.get(bitMask)?.deref();
 }
