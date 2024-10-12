@@ -11,6 +11,26 @@ const freeBitsStack = [];
 /** @type {WeakSet<Observer>} */
 const globalObserversWeakSet = new WeakSet();
 
+const registry = new FinalizationRegistry((heldValue) => {
+	console.log(`Object with held value "${heldValue}" was garbage collected`);
+	const [index, bit] = heldValue;
+
+	if (index === undefined || bit === undefined) return;
+
+	const current = bitsMap.get(index);
+	current?.delete(bit);
+	freeBitsStack.push([index, bit]);
+});
+
+/**
+ * @param {Observer} fn
+ * @param {[BitsRangeIndex, BitMask]} address
+ */
+function createWeakObserver(fn, address) {
+	registry.register(fn, address);
+	return new WeakRef(fn);
+}
+
 /** @type {Map<BitsRangeIndex, Map<BitMask, WeakRef<Observer>>>} */
 const bitsMap = new Map(); // [0, Map([ [32, () => {}] ])]
 
@@ -31,7 +51,7 @@ export const addObserver = (observer) => {
 
 		const bitsRange = bitsMap.get(index);
 		// @ts-ignore
-		bitsRange.set(bit, new WeakRef(observer));
+		bitsRange.set(bit, createWeakObserver(observer, [index, bit]));
 
 		return [index, bit];
 	}
@@ -45,7 +65,7 @@ export const addObserver = (observer) => {
 	const bit = 2 ** (globalBitIndex % 31);
 
 	// @ts-ignore
-	bitIndex.set(bit, new WeakRef(observer));
+	bitIndex.set(bit, createWeakObserver(observer, [currentBitsRange, bit]));
 	globalObserversWeakSet.add(observer);
 	globalBitIndex++;
 
