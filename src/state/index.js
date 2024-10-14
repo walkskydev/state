@@ -13,7 +13,13 @@ import { createProxy } from "./proxy.js";
  * @typedef {number} BitMask
  */
 
-/** @template {object} T */
+/**
+ * @typedef {Map<String, Map<BitsRange, BitMask>>} LocalStateObservers
+ */
+
+/**
+ * @template {object} T
+ */
 class State {
 	/**@type {T} */
 	#target;
@@ -41,7 +47,7 @@ class State {
 	};
 
 	/**
-	 * @type {Map<keyof T, [BitsRange, BitMask]>}
+	 * @type {LocalStateObservers}
 	 */
 	#observers = new Map();
 
@@ -64,12 +70,14 @@ class State {
 		}
 	};
 
-	/** @param {keyof T} key */
+	/** @param {string} key */
 	#notifyObservers(key) {
 		const observersMask = this.#observers.get(key);
 
 		if (observersMask !== undefined) {
-			addObserverToExecutionQueue(observersMask);
+			for (const bit of observersMask) {
+				addObserverToExecutionQueue(bit);
+			}
 		}
 	}
 

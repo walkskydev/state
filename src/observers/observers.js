@@ -8,8 +8,8 @@ let globalBitIndex = 0;
 /** @type {[number, number][]} */
 const freeBitsStack = [];
 
-/** @type {WeakSet<Observer>} */
-const globalObserversWeakSet = new WeakSet();
+/** @type {WeakMap<Observer, [BitsRangeIndex, BitMask]>} */
+const globalObserversWeakMap = new WeakMap();
 
 const registry = new FinalizationRegistry((heldValue) => {
 	console.log(`Object with held value "${heldValue}" was garbage collected`);
@@ -38,7 +38,7 @@ const bitsMap = new Map(); // [0, Map([ [32, () => {}] ])]
  *  @return {[BitsRangeIndex, BitMask] | undefined}
  */
 export const addObserver = (observer) => {
-	const isRegistered = isObserverHasRegistered(observer);
+	const isRegistered = getObserversBit(observer);
 
 	if (isRegistered) return undefined;
 
@@ -47,7 +47,7 @@ export const addObserver = (observer) => {
 	if (hasFreeBits) {
 		// @ts-ignore
 		const [index, bit] = freeBitsStack.pop();
-		globalObserversWeakSet.add(observer);
+		globalObserversWeakMap.set(observer, [index, bit]);
 
 		const bitsRange = bitsMap.get(index);
 		// @ts-ignore
@@ -66,7 +66,7 @@ export const addObserver = (observer) => {
 
 	// @ts-ignore
 	bitIndex.set(bit, createWeakObserver(observer, [currentBitsRange, bit]));
-	globalObserversWeakSet.add(observer);
+	globalObserversWeakMap.set(observer, [currentBitsRange, bit]);
 	globalBitIndex++;
 
 	return [currentBitsRange, bit];
@@ -74,22 +74,22 @@ export const addObserver = (observer) => {
 
 /** @param {Observer} observer */
 export const removeObserver = (observer) => {
-	// const [index, bit] = globalObserversWeakSet.get(observer) || [];
+	// const [index, bit] = globalObserversWeakMap.get(observer) || [];
 	// if (index === undefined || bit === undefined) return;
 
 	// const current = bitsMap.get(index);
 	// @ts-ignore
 	// current.delete(bit);
-	globalObserversWeakSet.delete(observer);
+	globalObserversWeakMap.delete(observer);
 	// freeBitsStack.push([index, bit]);
 };
 
 /**
  * @param {Observer} observer
- * @return {boolean}
+ * @return {[number, number] | undefined}
  */
-export function isObserverHasRegistered(observer) {
-	return globalObserversWeakSet.has(observer);
+export function getObserversBit(observer) {
+	return globalObserversWeakMap.get(observer);
 }
 
 /**
