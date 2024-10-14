@@ -1,6 +1,16 @@
 /** @typedef {() => void} Observer
+ *
+ * @typedef {(index: number, bit: number) => void} Callback
  * @typedef {number} BitsRangeIndex
  * @typedef {number} BitMask
+ */
+
+/**
+ *
+ * @typedef {{
+ *   address: [BitsRangeIndex, BitMask],
+ *   removeFromState: Callback
+ * }} WeakRegistryData
  */
 
 let globalBitIndex = 0;
@@ -11,23 +21,28 @@ const freeBitsStack = [];
 /** @type {WeakMap<Observer, [BitsRangeIndex, BitMask]>} */
 const globalObserversWeakMap = new WeakMap();
 
-const registry = new FinalizationRegistry((heldValue) => {
-	console.log(`Object with held value "${heldValue}" was garbage collected`);
-	const [index, bit] = heldValue;
+/**
+ *
+ * @type {FinalizationRegistry<WeakRegistryData>}
+ */
+const registry = new FinalizationRegistry(({ address, removeFromState }) => {
+	console.log(`Object with held value "${address}" was garbage collected`);
+	const [index, bit] = address;
 
 	if (index === undefined || bit === undefined) return;
 
-	const current = bitsMap.get(index);
-	current?.delete(bit);
+	removeFromState(index, bit);
+	bitsMap.get(index)?.delete(bit);
 	freeBitsStack.push([index, bit]);
 });
 
 /**
  * @param {Observer} fn
- * @param {[BitsRangeIndex, BitMask]} address
+ * @param {WeakRegistryData} data
  */
-function createWeakObserver(fn, address) {
-	registry.register(fn, address);
+function createWeakObserver(fn, data) {
+	registry.register(fn, data);
+
 	return new WeakRef(fn);
 }
 
@@ -35,9 +50,10 @@ function createWeakObserver(fn, address) {
 const bitsMap = new Map(); // [0, Map([ [32, () => {}] ])]
 
 /** @param {Observer} observer
+ *  @param {Callback}  removeFromState
  *  @return {[BitsRangeIndex, BitMask] | undefined}
  */
-export const addObserver = (observer) => {
+export const addObserver = (observer, removeFromState) => {
 	const isRegistered = getObserversBit(observer);
 
 	if (isRegistered) return undefined;
@@ -51,7 +67,10 @@ export const addObserver = (observer) => {
 
 		const bitsRange = bitsMap.get(index);
 		// @ts-ignore
-		bitsRange.set(bit, createWeakObserver(observer, [index, bit]));
+		bitsRange.set(
+			bit,
+			createWeakObserver(observer, { address: [index, bit], removeFromState }),
+		);
 
 		return [index, bit];
 	}
@@ -65,7 +84,13 @@ export const addObserver = (observer) => {
 	const bit = 2 ** (globalBitIndex % 31);
 
 	// @ts-ignore
-	bitIndex.set(bit, createWeakObserver(observer, [currentBitsRange, bit]));
+	bitIndex.set(
+		bit,
+		createWeakObserver(observer, {
+			address: [currentBitsRange, bit],
+			removeFromState,
+		}),
+	);
 	globalObserversWeakMap.set(observer, [currentBitsRange, bit]);
 	globalBitIndex++;
 
@@ -74,14 +99,14 @@ export const addObserver = (observer) => {
 
 /** @param {Observer} observer */
 export const removeObserver = (observer) => {
-	// const [index, bit] = globalObserversWeakMap.get(observer) || [];
-	// if (index === undefined || bit === undefined) return;
+	const [index, bit] = globalObserversWeakMap.get(observer);
+	if (index === undefined || bit === undefined) return;
 
-	// const current = bitsMap.get(index);
+	const current = bitsMap.get(index);
 	// @ts-ignore
-	// current.delete(bit);
+	current.delete(bit);
 	globalObserversWeakMap.delete(observer);
-	// freeBitsStack.push([index, bit]);
+	freeBitsStack.push([index, bit]);
 };
 
 /**

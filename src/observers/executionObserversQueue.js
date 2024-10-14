@@ -29,6 +29,7 @@ let isPending = false;
  */
 function executeObserversInRange(bitRangeIndex, observersBitMask) {
 	// TODO check if observer was already executed
+	// TODO: do while bit less or equal than mask
 	for (const bit of BITS) {
 		if ((observersBitMask & bit) !== 0) {
 			const observer = getObserver([bitRangeIndex, bit]);

@@ -1,9 +1,29 @@
 import { autoTrackableObserver } from "../observers/executeTrackableObserver.js";
-import { addObserver, getObserversBit } from "../observers/observers.js";
+import { addObserver } from "../observers/observers.js";
 
 /**
  * @typedef {import('./index.js').LocalStateObservers} LocalStateObservers
  */
+
+/**
+ *
+ * @param {String} property
+ * @param {LocalStateObservers} map
+ * @return {(index: number, bit: number) => void}
+ */
+function createStateObserverCleaner(property, map) {
+	/**
+	 * @param {number} index
+	 * @param {number} bit
+	 */
+	return (index, bit) => {
+		const currentBit = map.get(property)?.get(index);
+
+		if (currentBit !== undefined && (currentBit & bit) !== 0) {
+			map.set(property, new Map([[index, currentBit ^ bit]]));
+		}
+	};
+}
 
 /**
  * @template {object} T
@@ -26,27 +46,27 @@ export function createProxy(originalTarget, stateLocalObservers) {
 			if (autoTrackableObserver.length > 0) {
 				const current = autoTrackableObserver.at(-1);
 
-				// @ts-ignore
-				if (!getObserversBit(current)) {
+				const observerBitAddress = addObserver(
 					// @ts-ignore
-					const observerBitAddress = addObserver(current);
+					current,
+					createStateObserverCleaner(property, stateLocalObservers),
+				);
 
-					if (observerBitAddress !== undefined) {
-						const [index, bit] = observerBitAddress;
+				if (observerBitAddress !== undefined) {
+					const [index, bit] = observerBitAddress;
 
-						if (!stateLocalObservers.has(property)) {
-							stateLocalObservers.set(property, new Map());
-						}
+					if (!stateLocalObservers.has(property)) {
+						stateLocalObservers.set(property, new Map());
+					}
 
-						const bitsMap = stateLocalObservers.get(property);
-						if (!bitsMap?.has(index)) {
-							// @ts-ignore
-							bitsMap.set(index, bit);
-						} else {
-							const currentMask = bitsMap.get(index);
-							// @ts-ignore
-							bitsMap?.set(index, currentMask | bit);
-						}
+					const bitsMap = stateLocalObservers.get(property);
+					if (!bitsMap?.has(index)) {
+						// @ts-ignore
+						bitsMap.set(index, bit);
+					} else {
+						const currentMask = bitsMap.get(index);
+						// @ts-ignore
+						bitsMap?.set(index, currentMask | bit);
 					}
 				}
 			}
